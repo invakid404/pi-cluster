@@ -1,0 +1,54 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+    name: tailscale-operator
+    namespace: core
+spec:
+    interval: 10m0s
+    chart:
+        spec:
+            chart: tailscale-operator
+            version: 1.56.1
+            sourceRef:
+                kind: HelmRepository
+                name: tailscale
+    values:
+        operatorConfig:
+            hostname: pi-tailscale-operator
+            defaultTags: tag:k8s,tag:pi
+            image:
+                pullPolicy: Always
+        oauth:
+            clientId: k3n9NG2CNTRL
+            clientSecret: ENC[AES256_GCM,data:H66e3b67Ey4e7iXLm9EGTfCKhl5M3pIQ2RKcu6kfx055R4ovI1uHb8ToM0yDAw7+dssr5bfwK6QFCw==,iv:8LMm+VfmJ7c811712DGGHJacyJopNyXubAh1KyP3wWw=,tag:L/qybZcyqp02T5jgyOYB9A==,type:str]
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age: []
+    lastmodified: "2024-01-25T22:17:48Z"
+    mac: ENC[AES256_GCM,data:+wfMZj35B5kMJaxfbepHBcptEOXeazWJA5nLkacxpEMcEFhUInuP7TtQLsW9wqoyp75rDYtYCYuyOeyjNrfi+HyTlocoRjN75ZH5GUdH6nv8tyzgry8eySKyLsD4qauO35cn7mvuruJQW/MDfx4B6yzlZsyswJUQ4ED9nOyuWQA=,iv:+8UWF2AX+PkXur1uF/1iGXqKhWWJpp1UYclHlfEkA8Q=,tag:rE7Ehp88fltjNk3KeFh4jw==,type:str]
+    pgp:
+        - created_at: "2024-01-25T22:17:48Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            hQIMA83EhJxcYAoBAQ//SMzpi7LBlF66Xc7jDryfeZcmULE4SyAaYUJL91pV9CwT
+            Wlqma4GMVkAcNBWi1GWW25jVk2MVC05Sf4J96CJPzJIeDRg/2DoDGSSB8ibFqh+/
+            Z/HxapX7tCMbXEq/s7KQjah3raaNQORpqFugKO7TuOqH88078bTU+GjVHqSfZkYL
+            3HvaCmw0sl3l12tU/iKHPhC8592rPTJ/NhOhdX9EEd+TGyTCGGCHqO5QRrgAj42X
+            Wp0DghWxIHVcf2+wm3Yyj5C/qx3+0ewu8VT+EHyWO1OuXakZRFgJoQXjXc32Fkx4
+            8VvqJe1vs6tn6g6RPHfLxFR25JI1Kfeoo2E+LiXMjInVcuAOgwvMc8D59vKiudeH
+            i43gkTwrQdw4gYz0mgRxNZ5S6c+3vCg+cX1q21K+fUGePrC9MefO4AJALipN1mPq
+            uY9dMCZ2RTPWNnA0zniUal27HZgywtlrgGixA+/SLw0CR3uj72EzTXwcpMWDHYWt
+            coe4bCRualmczFfeVASNjFrnSSYmEGUOxoXgFY6DMxhCAp+Y86IXrx6zSZCV6W7A
+            FIkmJXA/gXixUMvcDwRsJsUh0/QZTgzZCtFR4WbwHw0RgwH2N5ipLnnz6yIaCbdf
+            HosMIX6YlRcpX7ZJctveJOXElGWfsSI0vJnoVUg6K126FBX+hapWQGPMgwO63lHS
+            XgGPP+UVTTzgHtyQmKxgyuLxfdH+OUuIn+U6YZSV7213G9uB5VfqhCcfxz5RT2J7
+            S08VSFHF7RpfF3vEQq9Ll3vs/Cx2ziBciWFtfnBJluWD/KRn0AcpIGSGqG1mOVI=
+            =uBpH
+            -----END PGP MESSAGE-----
+          fp: 05FA72D13D58F8D4588BE3FE5606FFB02A5F0984
+    encrypted_regex: ((?i)(pass($|word)|claim|secret($|[^N])|key|token|^data$|^stringData))
+    version: 3.8.1
