@@ -1,0 +1,115 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: &app home-assistant
+  namespace: apps
+spec:
+  interval: 10m0s
+  chart:
+    spec:
+      chart: app-template
+      version: 2.5.0
+      interval: 10m0s
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: core
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
+  values:
+    controllers:
+      main:
+        containers:
+          main:
+            image:
+              repository: ghcr.io/home-assistant/home-assistant
+              tag: 2024.1.2@sha256:5ace95850001fbb5a70c09edd45f9b35b9d077e4828b313785afd0099958e723
+            probes:
+              liveness:
+                enabled: false
+              readiness:
+                enabled: false
+              startup:
+                enabled: false
+
+        initContainers:
+          01-init-db:
+            image:
+              repository: ghcr.io/onedr0p/postgres-init
+              tag: 16.1@sha256:dda75857689116d9c233ec0978cb905da0f952618dfbe1b8731aa1071044eaf0
+            env:
+              - name: INIT_POSTGRES_HOST
+                value: postgres.core.svc.cluster.local
+              - name: INIT_POSTGRES_SUPER_USER
+                value: postgres
+              - name: INIT_POSTGRES_SUPER_PASS
+                value: ${POSTGRES_PASSWORD}
+              - name: INIT_POSTGRES_USER
+                value: postgres
+              - name: INIT_POSTGRES_PASS
+                value: ${POSTGRES_PASSWORD}
+              - name: INIT_POSTGRES_DBNAME
+                value: *app
+          02-copy-config:
+            image:
+              repository: busybox
+              tag: latest@sha256:ba76950ac9eaa407512c9d859cea48114eeff8a6f12ebaa5d32ce79d4a017dd8
+            command:
+              - "/bin/sh"
+              - -c
+            args:
+              - cp /configfiles/* /config/
+            volumeMounts:
+              - name: config
+                mountPath: /config
+              - name: configfiles
+                mountPath: /configfiles
+
+    service:
+      main:
+        ports:
+          http:
+            port: 8123
+
+    ingress:
+      main:
+        enabled: true
+        className: tailscale
+        annotations:
+          tailscale.com/funnel: "true"
+          tailscale.com/hostname: "hass"
+        hosts:
+          - host: &host hass.${TAILSCALE_DOMAIN}
+            paths:
+              - path: /
+                service:
+                  name: main
+                  port: http
+        tls:
+          - hosts:
+              - *host
+
+    persistence:
+      config:
+        enabled: true
+        existingClaim: home-assistant-config
+      configfiles:
+        enabled: true
+        type: configMap
+        name: home-assistant-config
+
+    defaultPodOptions:
+      hostNetwork: true
+      dnsPolicy: "ClusterFirstWithHostNet"
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"

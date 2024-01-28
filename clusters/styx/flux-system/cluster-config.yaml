@@ -3,4 +3,5 @@ kind: ConfigMap
 metadata:
   name: cluster-config
   namespace: flux-system
-data: {}
+data:
+  TAILSCALE_DOMAIN: qilin-qilin.ts.net
