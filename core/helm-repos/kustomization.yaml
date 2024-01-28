@@ -3,4 +3,5 @@ kind: Kustomization
 resources:
   - ./bitnami.yaml
   - ./bjw-s.yaml
+  - ./stakater.yaml
   - ./tailscale.yaml

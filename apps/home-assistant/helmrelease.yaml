@@ -73,6 +73,9 @@ spec:
               - name: configfiles
                 mountPath: /configfiles
 
+        annotations:
+          reloader.stakater.com/auto: "true"
+
     service:
       main:
         ports:
