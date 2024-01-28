@@ -72,6 +72,23 @@ spec:
                 mountPath: /config
               - name: configfiles
                 mountPath: /configfiles
+          03-install-hacs:
+            image:
+              repository: busybox
+              tag: 1.36.1@sha256:ba76950ac9eaa407512c9d859cea48114eeff8a6f12ebaa5d32ce79d4a017dd8
+            command:
+              - "/bin/sh"
+              - -c
+            args:
+              - |
+                # renovate: github-release depName=hacs/integration
+                HACS_VERSION="1.33.0"
+                mkdir -p /config/custom_components
+                rm -rf /config/custom_components/hacs
+                busybox wget -qO- "https://github.com/hacs/integration/releases/download/$${HACS_VERSION}/hacs.zip"  | busybox unzip -d /config/custom_components/hacs -
+            volumeMounts:
+              - name: config
+                mountPath: /config
 
         annotations:
           reloader.stakater.com/auto: "true"
