@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
   - ./base.yaml
   - ./metallb.yaml
+  - ./ip-pools.yaml
   - ./postgres.yaml
   - ./reloader.yaml
   - ./tailscale-operator.yaml
