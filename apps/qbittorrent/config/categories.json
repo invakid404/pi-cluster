@@ -1,0 +1,11 @@
+{
+  "Series": {
+    "save_path": "/mnt/media/Downloads/Series"
+  },
+  "Movies": {
+    "save_path": "/mnt/media/Downloads/Movies"
+  },
+  "Movies (4K)": {
+    "save_path": "/mnt/media/Downloads/Movies (4K)"
+  }
+}
