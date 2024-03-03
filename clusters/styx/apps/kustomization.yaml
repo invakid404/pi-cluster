@@ -4,3 +4,4 @@ resources:
   - ./base.yaml
   - ./home-assistant.yaml
   - ./qbittorrent.yaml
+  - ./plex.yaml

@@ -7,3 +7,4 @@ data:
   TAILSCALE_DOMAIN: qilin-qilin.ts.net
 
   QBITTORRENT_IP: 192.168.0.241
+  PLEX_IP: 192.168.0.242
