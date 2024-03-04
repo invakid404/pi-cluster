@@ -49,6 +49,7 @@ spec:
         className: tailscale
         annotations:
           tailscale.com/hostname: *app
+          tailscale.com/funnel: "true"
         hosts:
           - host: &host plex.${TAILSCALE_DOMAIN}
             paths:
