@@ -21,14 +21,16 @@ spec:
         oauth:
             clientId: k3n9NG2CNTRL
             clientSecret: ENC[AES256_GCM,data:H66e3b67Ey4e7iXLm9EGTfCKhl5M3pIQ2RKcu6kfx055R4ovI1uHb8ToM0yDAw7+dssr5bfwK6QFCw==,iv:8LMm+VfmJ7c811712DGGHJacyJopNyXubAh1KyP3wWw=,tag:L/qybZcyqp02T5jgyOYB9A==,type:str]
+        apiServerProxyConfig:
+            mode: "true"
 sops:
     kms: []
     gcp_kms: []
     azure_kv: []
     hc_vault: []
     age: []
-    lastmodified: "2024-01-25T22:17:48Z"
-    mac: ENC[AES256_GCM,data:+wfMZj35B5kMJaxfbepHBcptEOXeazWJA5nLkacxpEMcEFhUInuP7TtQLsW9wqoyp75rDYtYCYuyOeyjNrfi+HyTlocoRjN75ZH5GUdH6nv8tyzgry8eySKyLsD4qauO35cn7mvuruJQW/MDfx4B6yzlZsyswJUQ4ED9nOyuWQA=,iv:+8UWF2AX+PkXur1uF/1iGXqKhWWJpp1UYclHlfEkA8Q=,tag:rE7Ehp88fltjNk3KeFh4jw==,type:str]
+    lastmodified: "2024-03-05T17:06:25Z"
+    mac: ENC[AES256_GCM,data:dL4zoJAIEq1TiPB6iydDxW7NrPB2dSjF07DImfQ9uXSFEhpsnpeb+OpUZZlY/Z2SVzH/d6D2xiGWCgnphOIWM2F6LlP4Sb50skEocCDBZKDqMMgerefDjSZTjEGNlxL4lJx9g4pnBmir4JctQcT5G33x+JI0LJoAx18+5dGu060=,iv:P+0UpZRffJvheWnU1GC7EB3D+Y43n9zfUblu+8Og99o=,tag:vvYb0WciOvTZco+8fVogow==,type:str]
     pgp:
         - created_at: "2024-01-25T22:17:48Z"
           enc: |-
