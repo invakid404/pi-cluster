@@ -5,3 +5,4 @@ resources:
   - ./home-assistant.yaml
   - ./qbittorrent.yaml
   - ./plex.yaml
+  - ./windmill.yaml

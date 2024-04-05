@@ -5,3 +5,4 @@ resources:
   - ./bjw-s.yaml
   - ./stakater.yaml
   - ./tailscale.yaml
+  - ./windmill.yaml

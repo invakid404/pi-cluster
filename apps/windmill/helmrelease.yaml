@@ -1,0 +1,71 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: &app windmill
+  namespace: apps
+spec:
+  interval: 10m0s
+  chart:
+    spec:
+      chart: windmill
+      version: 2.0.151
+      interval: 10m0s
+      sourceRef:
+        kind: HelmRepository
+        name: windmill
+        namespace: core
+
+  values:
+    windmill:
+      baseDomain: &windmill-domain wmill.${TAILSCALE_DOMAIN}
+      databaseUrl: postgres://postgres:${POSTGRES_PASSWORD}@postgres.core.svc.cluster.local/windmill?sslmode=disable
+      appReplicas: 1
+      lspReplicas: 1
+      workerGroups:
+        - name: "default"
+          replicas: 3
+        - name: "native"
+          replicas: 1
+
+    postgresql:
+      enabled: false
+
+    minio:
+      enabled: false
+
+    ingress:
+      enabled: true
+      className: tailscale
+      annotations:
+        tailscale.com/hostname: wmill
+        tailscale.com/funnel: "true"
+      tls:
+        - hosts:
+            - *windmill-domain
+
+  postRenderers:
+    - kustomize:
+        patchesStrategicMerge:
+          - kind: Deployment
+            apiVersion: apps/v1
+            metadata:
+              name: windmill-app
+            spec:
+              template:
+                spec:
+                  initContainers:
+                    - name: init-db
+                      image: ghcr.io/onedr0p/postgres-init:16.1@sha256:dda75857689116d9c233ec0978cb905da0f952618dfbe1b8731aa1071044eaf0
+                      env:
+                        - name: INIT_POSTGRES_HOST
+                          value: postgres.core.svc.cluster.local
+                        - name: INIT_POSTGRES_SUPER_USER
+                          value: postgres
+                        - name: INIT_POSTGRES_SUPER_PASS
+                          value: ${POSTGRES_PASSWORD}
+                        - name: INIT_POSTGRES_USER
+                          value: postgres
+                        - name: INIT_POSTGRES_PASS
+                          value: ${POSTGRES_PASSWORD}
+                        - name: INIT_POSTGRES_DBNAME
+                          value: *app
