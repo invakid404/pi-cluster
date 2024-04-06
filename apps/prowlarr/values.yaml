@@ -1,0 +1,83 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/common-3.1.0/charts/library/common/values.schema.json
+controllers:
+  main:
+    containers:
+      main:
+        image:
+          repository: ghcr.io/onedr0p/prowlarr-nightly
+          tag: 1.12.1.4200@sha256:ba5edf867198ad50038ddf90993e8cb755491a81a501d3ca9a2abdfd2ae71103
+        env:
+          TZ: ${TIMEZONE}
+          PROWLARR__INSTANCE_NAME: Prowlarr
+          PROWLARR__PORT: &port 9696
+          PROWLARR__LOG_LEVEL: info
+          PROWLARR__ANALYTICS_ENABLED: "False"
+          PROWLARR__AUTHENTICATION_METHOD: External
+          PROWLARR__POSTGRES_HOST: postgres.core.svc.cluster.local
+          PROWLARR__POSTGRES_MAIN_DB: &main-db prowlarr
+          PROWLARR__POSTGRES_LOG_DB: &log-db prowlarr-logs
+          PROWLARR__POSTGRES_USER: postgres
+          PROWLARR__POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    initContainers:
+      01-init-main-db:
+        image:
+          repository: ghcr.io/onedr0p/postgres-init
+          tag: 16.1@sha256:dda75857689116d9c233ec0978cb905da0f952618dfbe1b8731aa1071044eaf0
+        env:
+          - name: INIT_POSTGRES_HOST
+            value: postgres.core.svc.cluster.local
+          - name: INIT_POSTGRES_SUPER_USER
+            value: postgres
+          - name: INIT_POSTGRES_SUPER_PASS
+            value: ${POSTGRES_PASSWORD}
+          - name: INIT_POSTGRES_USER
+            value: postgres
+          - name: INIT_POSTGRES_PASS
+            value: ${POSTGRES_PASSWORD}
+          - name: INIT_POSTGRES_DBNAME
+            value: *main-db
+      02-init-log-db:
+        image:
+          repository: ghcr.io/onedr0p/postgres-init
+          tag: 16.1@sha256:dda75857689116d9c233ec0978cb905da0f952618dfbe1b8731aa1071044eaf0
+        env:
+          - name: INIT_POSTGRES_HOST
+            value: postgres.core.svc.cluster.local
+          - name: INIT_POSTGRES_SUPER_USER
+            value: postgres
+          - name: INIT_POSTGRES_SUPER_PASS
+            value: ${POSTGRES_PASSWORD}
+          - name: INIT_POSTGRES_USER
+            value: postgres
+          - name: INIT_POSTGRES_PASS
+            value: ${POSTGRES_PASSWORD}
+          - name: INIT_POSTGRES_DBNAME
+            value: *log-db
+
+service:
+  main:
+    controller: main
+    ports:
+      http:
+        port: *port
+
+ingress:
+  main:
+    enabled: true
+    className: tailscale
+    hosts:
+      - host: &host prowlarr.${TAILSCALE_DOMAIN}
+        paths:
+          - path: /
+            service:
+              identifier: main
+              port: http
+    tls:
+      - hosts:
+          - *host
+
+persistence:
+  config:
+    enabled: true
+    existingClaim: prowlarr-config

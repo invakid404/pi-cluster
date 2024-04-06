@@ -6,3 +6,4 @@ resources:
   - ./qbittorrent.yaml
   - ./plex.yaml
   - ./windmill.yaml
+  - ./prowlarr.yaml
