@@ -1,0 +1,53 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/common-3.1.0/charts/library/common/values.schema.json
+controllers:
+  main:
+    containers:
+      main:
+        image:
+          repository: docker.io/filebrowser/filebrowser
+          tag: v2.28.0@sha256:d312dbaa9ecab09fb31857178c978d587167f1de14da8e025be175cda4c201a0
+        env:
+          TZ: ${TIMEZONE}
+          FB_DATABASE: /config/filebrowser.db
+          FB_ROOT: /mnt/media
+          FB_LOG: stdout
+          FB_USERNAME: admin
+          FB_PASSWORD: ${FILEBROWSER_PASSWORD}
+
+service:
+  main:
+    controller: main
+    ports:
+      http:
+        port: 80
+
+ingress:
+  main:
+    enabled: true
+    className: tailscale
+    annotations:
+      tailscale.com/hostname: fb
+      tailscale.com/funnel: "true"
+    hosts:
+      - host: &host fb.${TAILSCALE_DOMAIN}
+        paths:
+          - path: /
+            service:
+              identifier: main
+              port: http
+    tls:
+      - hosts:
+          - *host
+
+persistence:
+  config:
+    enabled: true
+    existingClaim: filebrowser-config
+
+  media:
+    enabled: true
+    type: hostPath
+    hostPath: /mnt/media
+    globalMounts:
+      - path: /mnt/media

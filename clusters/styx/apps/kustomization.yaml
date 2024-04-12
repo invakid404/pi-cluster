@@ -7,3 +7,4 @@ resources:
   - ./plex.yaml
   - ./windmill.yaml
   - ./prowlarr.yaml
+  - ./filebrowser.yaml
