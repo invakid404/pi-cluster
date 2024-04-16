@@ -1,0 +1,58 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/common-3.1.0/charts/library/common/values.schema.json
+controllers:
+  main:
+    containers:
+      main:
+        image:
+          repository: ghcr.io/invakid404/pplx-tracker
+          tag: 0.1.0@sha256:8e8dc87125081483c244aa54423e218a2dfd28437db716aa8dc8890a76115a6b
+        env:
+          PPLX_API_KEY: ${PPLX_API_KEY}
+          DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@postgres.core.svc.cluster.local/pplx-tracker?sslmode=disable
+    initContainers:
+      01-init-main-db:
+        image:
+          repository: ghcr.io/onedr0p/postgres-init
+          tag: 16.1@sha256:dda75857689116d9c233ec0978cb905da0f952618dfbe1b8731aa1071044eaf0
+        env:
+          - name: INIT_POSTGRES_HOST
+            value: postgres.core.svc.cluster.local
+          - name: INIT_POSTGRES_SUPER_USER
+            value: postgres
+          - name: INIT_POSTGRES_SUPER_PASS
+            value: ${POSTGRES_PASSWORD}
+          - name: INIT_POSTGRES_USER
+            value: postgres
+          - name: INIT_POSTGRES_PASS
+            value: ${POSTGRES_PASSWORD}
+          - name: INIT_POSTGRES_DBNAME
+            value: pplx-tracker
+
+defaultPodOptions:
+  imagePullSecrets:
+    - name: docker-config
+
+service:
+  main:
+    controller: main
+    ports:
+      http:
+        port: 8080
+
+ingress:
+  main:
+    enabled: true
+    className: tailscale
+    annotations:
+      tailscale.com/hostname: pplx
+    hosts:
+      - host: &host pplx.${TAILSCALE_DOMAIN}
+        paths:
+          - path: /
+            service:
+              identifier: main
+              port: http
+    tls:
+      - hosts:
+          - *host
