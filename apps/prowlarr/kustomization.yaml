@@ -8,5 +8,5 @@ configMapGenerator:
     namespace: apps
     files:
       - values.yaml
-generatorOptions:
-  disableNameSuffixHash: true
+configurations:
+  - kustomizeconfig.yaml
