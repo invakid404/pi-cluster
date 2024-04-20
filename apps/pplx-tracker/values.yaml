@@ -6,7 +6,7 @@ controllers:
       main:
         image:
           repository: ghcr.io/invakid404/pplx-tracker
-          tag: 0.1.1@sha256:278b0152df90b8c22b6ceff4464b7254cfb2a4fc0434463f8c7f340f7520c33f
+          tag: 0.2.0@sha256:db47bff5a9fa746b3ba8144eb534ad6d467900fbbd642427fda377e23a0b1162
         env:
           PPLX_API_KEY: ${PPLX_API_KEY}
           DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@postgres.core.svc.cluster.local/pplx-tracker?sslmode=disable
