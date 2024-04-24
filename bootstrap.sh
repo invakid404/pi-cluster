@@ -13,4 +13,5 @@ flux bootstrap github \
   --owner=invakid404 \
   --repository=pi-cluster \
   --path=clusters/styx \
-  --personal
+  --personal \
+  --token-auth
