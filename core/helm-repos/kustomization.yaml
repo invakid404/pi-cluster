@@ -6,3 +6,4 @@ resources:
   - ./stakater.yaml
   - ./tailscale.yaml
   - ./windmill.yaml
+  - ./jetstack.yaml
