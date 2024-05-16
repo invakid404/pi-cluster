@@ -1,0 +1,74 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+    name: actions-runner-controller
+    namespace: apps
+spec:
+    interval: 10m0s
+    chart:
+        spec:
+            chart: actions-runner-controller
+            version: 0.23.7
+            interval: 10m0s
+            sourceRef:
+                kind: HelmRepository
+                name: actions-runner-controller
+                namespace: core
+    values:
+        authSecret:
+            create: ENC[AES256_GCM,data:jjjSvA==,iv:AdOcwsuUC02EHF3l+YET7alNSA7fFIs4JCdFdBwDi5w=,tag:v6xbbB52jmfQhVaLyDQRIg==,type:bool]
+            github_token: ENC[AES256_GCM,data:K3DqX835HxTnXEXTTgfwW48wNY6oNmon5IFpCKdNbOPRnjWF3oFymg==,iv:gjY/EAaZkqiY8biIWnCBjzm6q9jMcCcAKQhXYSb7SrQ=,tag:RGfLMF7Cfc0izVB7eWAgxw==,type:str]
+        githubWebhookServer:
+            enabled: true
+            service:
+                type: ClusterIP
+                annotations: {}
+                ports:
+                    - port: 80
+                      targetPort: http
+                      protocol: TCP
+                      name: http
+            ingress:
+                enabled: true
+                ingressClassName: tailscale
+                annotations:
+                    tailscale.com/hostname: arc
+                hosts:
+                    - host: arc.${TAILSCALE_DOMAIN}
+                      paths:
+                        - path: /
+                          pathType: Prefix
+                tls:
+                    - hosts:
+                        - arc.${TAILSCALE_DOMAIN}
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age: []
+    lastmodified: "2024-05-16T14:09:36Z"
+    mac: ENC[AES256_GCM,data:okzHtfBhNBootnoEozy0VPBenLgisLhybp0PBB6JRMBonsQDzpAlc1vyZPvTnW2Wv7qj8J9nkcz9x7M3iBX5g11DSwhBZPur1qnR1vpdUF6eKWk1LdvDjiU/cjzLYIuJABA58Hz+5lCYR5QsSx+bTUY/P8+lrf/ltupn3C1qlbI=,iv:QJNFMc+m91gTgV/lKlZxzBb3zHOI8a80+DxjwONqdPA=,tag:ueDVDmBQcV+4Y2cLohuFng==,type:str]
+    pgp:
+        - created_at: "2024-05-16T13:50:11Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            hQIMA83EhJxcYAoBAQ//QniNjHTeNro68DvUFjWaVgCSy0Fdmjs4jHq2MdAApGdP
+            OAgOXZvGpvJiaIThYsHqY0fskqtW/tetTwJl77U244JcrAAnw5w7pZjBUTJyDxxt
+            f3U+OGqsBrPDZj+y/PA4MtdCvTEm9WH9V948rrx5ZcGcmCtqZWUDFt3wZH5jbhOI
+            oQnp2UbNJZyVwQCJPJ5z8HC0NMJHDJBmgjo9DUtb6fgIl/mHFTnGA+H7M5GgL6uz
+            v6tWgZ4jBYnjHd5s6vZuTBjaTUFbOd6LxwQoDSVif2I0ckpkOIW6IXpkRQ3pHHO9
+            KJSjNP0qEJk23byj10yx6I/PgiRQL8wsQukZFoBlgVV7NqBZALpbeeJaVOMhki5h
+            83M0v7DVHkvPhHuRBZt/amzVXzOKJp55AZeQQmtPrvvWUKx9yYKe7Wsp8iMfdJmw
+            Sxy0uy/6+6sSlx1TE3spzxsFYtwytbDUXkccAU3UEMsp8k8gEkQeA7nDXcp+eZqp
+            f1fnPDqWMiPVGmP5aeoCjEuLaZronEXaMbtL20OQQS3dtP9UY+ox34GUCx2L0UVi
+            8SAh3DMyFfSH7aUOOZBKpxm280uhTRIeepylGG6N7AXgpvpNM61OOQaXGQ65jsWJ
+            I0zzGW0qX2M+Wj8hPaVvG1XsPcw35ULeuZPaqiFfXXkh8M/ddQPXFn0EOBJjA6fS
+            XgGlhDrSf2+6rcnoNNLi1b0ZHdYxxcqvgPwe1otM3CzGgzwmHAHo6zJUlrtBog8g
+            PDpntnLs68Hfx4gBkP+pmYItD5SSfkQ61juUT7zi1DoTIFMKm5dCQVEl/PuDeCo=
+            =FChO
+            -----END PGP MESSAGE-----
+          fp: 05FA72D13D58F8D4588BE3FE5606FFB02A5F0984
+    encrypted_regex: ((?i)(pass($|word)|claim|secret($|[^N])|key|token|^data$|^stringData))
+    version: 3.8.1

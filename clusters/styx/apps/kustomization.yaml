@@ -10,3 +10,4 @@ resources:
   - ./filebrowser.yaml
   - ./pplx-tracker.yaml
   - ./image-host.yaml
+  - ./arc.yaml

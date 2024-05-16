@@ -7,3 +7,4 @@ resources:
   - ./tailscale.yaml
   - ./windmill.yaml
   - ./jetstack.yaml
+  - ./arc.yaml
