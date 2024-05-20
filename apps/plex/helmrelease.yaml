@@ -33,7 +33,7 @@ spec:
               PLEX_ADVERTISE_URL: https://${PLEX_IP}:32400,https://plex.${TAILSCALE_DOMAIN}:443
             image:
               repository: ghcr.io/onedr0p/plex
-              tag: 1.40.1.8227-c0dd5a73e@sha256:f73b16d86127c981bb540f0abb2da9dfbecf5b125e1eace6b79baf2903e963a4
+              tag: 1.40.2.8395-c67dce28e@sha256:13c3727ed0cafb34cd861bb4a2f3e1e1911aef1f56777f41c185fefef305787f
 
     service:
       main:
