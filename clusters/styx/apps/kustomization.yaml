@@ -11,4 +11,5 @@ resources:
   - ./pplx-tracker.yaml
   - ./image-host.yaml
   - ./arc.yaml
+  - ./arc-runners.yaml
   - ./webhook.yaml
