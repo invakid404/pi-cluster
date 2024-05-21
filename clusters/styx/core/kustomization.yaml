@@ -7,4 +7,3 @@ resources:
   - ./postgres.yaml
   - ./reloader.yaml
   - ./tailscale-operator.yaml
-  - ./cert-manager.yaml
