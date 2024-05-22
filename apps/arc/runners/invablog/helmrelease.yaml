@@ -1,0 +1,68 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+    name: arc-invablog
+    namespace: apps
+spec:
+    interval: 10m0s
+    chart:
+        spec:
+            chart: gha-runner-scale-set
+            version: 0.9.2
+            sourceRef:
+                kind: HelmRepository
+                name: actions-runner-controller
+                namespace: core
+    install:
+        remediation:
+            retries: 3
+    upgrade:
+        cleanupOnFail: true
+        remediation:
+            retries: 3
+    uninstall:
+        keepHistory: false
+    values:
+        runnerScaleSetName: invablog
+        githubConfigUrl: https://github.com/invakid404/invablog
+        githubConfigSecret:
+            github_token: ENC[AES256_GCM,data:27PRdK4fCKKNbz9N4t38baEa1c2W722F/y/kZYVUSZCdAjWBD3BX5w==,iv:KXET4X5iimHtTRXr3e+sFaYu3THCHOagY4fO9lCAGvs=,tag:il2ozLcQb8Ju7tU2346JYQ==,type:str]
+        template:
+            spec:
+                containers:
+                    - name: runner
+                      image: ghcr.io/invakid404/runners/invablog
+                      imagePullPolicy: Always
+                      command:
+                        - /home/runner/run.sh
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age: []
+    lastmodified: "2024-05-22T12:37:21Z"
+    mac: ENC[AES256_GCM,data:ZbGEEEAotxRqJ+F5wPYkl7AYyznrVTWqZofOIYBVn5yp7vT7TFLSzq12jDAcZb+9zhzOTWilBVMH3Z/3LG1CrPljCBuwpuYHZIgd5i1N2jImIQhhWPZRzx8SRSQuWPBl0nJgXNnc2i0ciC4JtDmIeCkqOWUJxX3HA+K91whSsKc=,iv:j6dS+BSVRUPG3DtB2hSC2HX6TeQbjLnZffRVelUNtCk=,tag:5/HACCoQidDK1dtB3zcC3w==,type:str]
+    pgp:
+        - created_at: "2024-05-21T13:59:59Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            hQIMA83EhJxcYAoBAQ/8C01UG0u0QoXjgT50F9nIC+ji4CXKMg6II5KxrdX5G1d1
+            ysYuurArdtIp4q2uIAzN6j68l4WBFd34bxRGWb1fghCMT5S0W0iuQg0QvpCRxv0/
+            i8n2+Ux5Ps5SziAY0flZwVzwJf6Hcl9UQBdKGZG+wsS0G87rg0bpqIZ9Cqu4wg0x
+            p/pdKWzuD0fTz0KtZLgCZNSiih5gZ25fZbKNrkD2RFoeRHvtMFCanLKk7NYqX7Fj
+            JvDwNwqhkGWoqHJ8CdjMgXBfmksr2FBkkkpvCsERn2LlL42IPBcKUWlCVpvzj6DF
+            WVrUMO6Hc41+vZvYoJT9lMqQFNsq9JeJ22DLRnlnUPXjcW1NvgYUVo+b+KS6YZXE
+            ofKfe3VR8DMMVcTICv65ak+HddMt16Cgn0UjC7qiCUV3AixFCHYtsNHDkZq0YJTV
+            hm/qiyko2RT/UHfBz775RZHcZrnqaid7fPzRFOkK6NboTr1sn6Cf/Hew/umR7ydn
+            16yjyG+Egi/XEHOWrHxZr+vpntJw5T4M8xdVpezXbImfe0oHV3uh+M1OmBUYauw0
+            1G08RZ0LgZyMRvb/2grvyCtmOqQOH+36JQcAmYRbm8qrEcw29wAl7hQE7oT7fL82
+            nwA+kn6PIYyksiG5o3OysiGYGTSIEs8JOvORgFvY6PFlICDvRF5bwdpWqLaVw3TS
+            XgGjZyGlU3hf+gqX/kKx5zrVkNW9k/sbTAPDWPxMMlP5g1GZVwPMVrKwKbaRR/hx
+            o1ho62EE0QvAOqQm4yrtq7WGV6lQKrU1vj7ZDNr1hCuwsBIOUFuit6baoox3ylA=
+            =02k1
+            -----END PGP MESSAGE-----
+          fp: 05FA72D13D58F8D4588BE3FE5606FFB02A5F0984
+    encrypted_regex: ((?i)(pass($|word)|claim|secret($|[^N])|key|token|^data$|^stringData))
+    version: 3.8.1
