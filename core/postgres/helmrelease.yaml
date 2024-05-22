@@ -27,6 +27,10 @@ spec:
           postgresPassword: ${POSTGRES_PASSWORD}
 
     primary:
+      service:
+        annotations:
+          tailscale.com/expose: "true"
+          tailscale.com/hostname: postgres
       persistence:
         enabled: true
         existingClaim: postgres-data
