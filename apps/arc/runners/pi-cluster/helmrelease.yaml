@@ -25,6 +25,8 @@ spec:
     values:
         runnerScaleSetName: pi-cluster
         githubConfigUrl: https://github.com/invakid404/pi-cluster
+        containerMode:
+            type: dind
         githubConfigSecret:
             github_token: ENC[AES256_GCM,data:27PRdK4fCKKNbz9N4t38baEa1c2W722F/y/kZYVUSZCdAjWBD3BX5w==,iv:KXET4X5iimHtTRXr3e+sFaYu3THCHOagY4fO9lCAGvs=,tag:il2ozLcQb8Ju7tU2346JYQ==,type:str]
 sops:
@@ -33,8 +35,8 @@ sops:
     azure_kv: []
     hc_vault: []
     age: []
-    lastmodified: "2024-05-21T14:05:46Z"
-    mac: ENC[AES256_GCM,data:BRWxoFDdnkKs7ewp/ZJeEUvNd3JYnJ3vKeBLWZC/9VsZz2RaehWozqYZO5a9pYt/JPYeBe0j2gh2FmAF1YBAXIyHy2EvFPpxM6pRBBxyeRU9juEPwDW5Eyq6Y9rZn1IGDJnehsI0w+cjBk2FcGGCXR9jrKyBEsmGAREub32sP8c=,iv:xIXCY2R8rwBYtm50jwZMSZzH5s77rkacaK9zvpwO4j4=,tag:AJnlco4AIOYFIdguOBQX4A==,type:str]
+    lastmodified: "2024-05-22T09:57:49Z"
+    mac: ENC[AES256_GCM,data:jRQeCt/G4lcJPUnTT+wgK50gwrDI+aaSdZuwQmHkb7yqwhQxajGBsQsMjvCi+5AY0YNRN6CcHfB93XZsur5ZW7QbpT8ZWXG0p9lvfNdBUyPiqHMz9CCAly+3F+1Q/bHg8FFmDmCo24eVoqB7Ktzt8N5qV95UfR9JGaJpah2CAm0=,iv:oPmyI53kSIkBdnpXF6lNNDUGQZ5Xv67bPBldUHfViAo=,tag:Z/UdMknc58KU6biqbr+CQw==,type:str]
     pgp:
         - created_at: "2024-05-21T13:59:59Z"
           enc: |-
