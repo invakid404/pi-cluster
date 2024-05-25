@@ -7,3 +7,4 @@ resources:
   - ./postgres.yaml
   - ./reloader.yaml
   - ./tailscale-operator.yaml
+  - ./magicauth-crds.yaml
