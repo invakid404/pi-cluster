@@ -1,0 +1,45 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/common-3.1.0/charts/library/common/values.schema.json
+controllers:
+  main:
+    containers:
+      main:
+        image:
+          repository: ghcr.io/invakid404/magicauth
+          tag: latest
+          pullPolicy: Always
+        env:
+          PORT: &port 8080
+          BASE_URL: https://auth.${TAILSCALE_DOMAIN}
+
+defaultPodOptions:
+  imagePullSecrets:
+    - name: docker-config
+
+serviceAccount:
+  name: magicauth
+
+service:
+  main:
+    controller: main
+    ports:
+      http:
+        port: *port
+
+ingress:
+  main:
+    enabled: true
+    className: tailscale
+    annotations:
+      tailscale.com/hostname: "auth"
+      tailscale.com/funnel: "true"
+    hosts:
+      - host: &host auth.${TAILSCALE_DOMAIN}
+        paths:
+          - path: /
+            service:
+              identifier: main
+              port: http
+    tls:
+      - hosts:
+          - *host
