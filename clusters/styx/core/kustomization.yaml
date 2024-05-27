@@ -8,3 +8,4 @@ resources:
   - ./reloader.yaml
   - ./tailscale-operator.yaml
   - ./magicauth-crds.yaml
+  - ./nfs.yaml

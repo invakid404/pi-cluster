@@ -8,3 +8,4 @@ resources:
   - ./windmill.yaml
   - ./jetstack.yaml
   - ./arc.yaml
+  - ./nfs.yaml

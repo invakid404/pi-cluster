@@ -1,15 +1,16 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: apps-base
+  name: nfs
   namespace: flux-system
 spec:
   interval: 10m0s
   sourceRef:
     kind: GitRepository
     name: flux-system
-  path: ./apps
+  path: ./core/nfs
   prune: true
+  wait: true
   postBuild:
     substituteFrom:
       - kind: ConfigMap
@@ -21,6 +22,4 @@ spec:
     secretRef:
       name: sops-gpg
   dependsOn:
-    - name: reloader
-    - name: tailscale-operator
-    - name: nfs
+    - name: core-base
