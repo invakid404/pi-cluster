@@ -1,0 +1,40 @@
+kind: Secret
+type: Opaque
+apiVersion: v1
+metadata:
+    name: minio-creds
+    namespace: core
+stringData:
+    root-user: ENC[AES256_GCM,data:QQkhy5Y=,iv:6qbD56VDbH1AcIVYHYOx6EBDVLsRRKwRucnDl2t384Q=,tag:IRwpmd8qtE5wp5T4VzaTiw==,type:str]
+    root-password: ENC[AES256_GCM,data:LEvbBzzVcdecws6T+ZzjlweoY7ALxEZEFBv1sFxXl6DAVFxviXLRfz2y9YD3Wx/aRyM4AputhsF4Mji3FOD46w==,iv:j68MROcKA4rnU4RIHLXlaO+8GNNf2gwo1SZ/A+txRHs=,tag:b3XvRZzX0PIaZDz8bqGBcQ==,type:str]
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age: []
+    lastmodified: "2024-05-27T19:35:56Z"
+    mac: ENC[AES256_GCM,data:8KriNvUJ3C4HScWHqTFJWguEZgyrBaiLz1E5sDoGo/Z1xpO+BAoc8aqz+T4Nze5uxe7zIVSXn62YjkYmcq8n0aOmycDz/9rJCNfFPsVom6CZPS0NYe1ePQo7fwccLBnGm060VjRqYGRMHdVjvxxAYWxFMdzmw3jWnTdE85cV6B8=,iv:qu64frCjwAp6sjPrDJJa3BhimWZwS37EdFM8/cIoYaY=,tag:z41fcmW/b9LO+YglaMQTrQ==,type:str]
+    pgp:
+        - created_at: "2024-05-27T19:35:49Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            hQIMA83EhJxcYAoBAQ//WCGlEhzNHCUXu19M9O6i+4XOR4lq7w9vzRsD4BAw9pN/
+            sj7SXwN0x36CyM/FEdVnXcAnyeulFyvGacb3u4INlRE9XY795EcCdfIK005KOJYX
+            q0TuULCTsxiiVt5H+FbhDjyn5et4qDfE68x4UZPYYMV37qI3fesPhKQsi/l3fba8
+            6oE4+OamMUobuoVF9pXwnNPMjh6uVAeXwXKx2rjP72PoSO/o0Xy68DkZYBiClzxn
+            e/lsGwvE44gk7MEVuRWR8CCmf5uh6OiwmRt430VNBkbXYzaE9QZsx1AWKFgc47gG
+            pBQYwRIXDkx5IM3EToYVfpzayaCIxu+qN1p0bdva0z9C168A1Kp8sNVvadX+QQ57
+            t+B89JoFMbvGEE0T5u5NOJKw6XLMu9tEgSzFdP3SHwuWtykG23WPgUni1Dl07fm/
+            OD6U9jZ+hnZmJPgvSM+uopDn9DRdbI8lEmkO3ZNwic08MqDsmGUCYz5hwX4WS8Iv
+            89tcgIcQpEXF0nW1IuvVrm8a5dN5/pmcSJx451JQIooNyeVwuo1jNDo6ZeeDnJnV
+            mB0v5KDbytV7tDbt/Oe+CIkkhdfe8oQxahAcpF/IK6VYzslvzsS/aEEGt6SZZlaX
+            Xxt5CG9iZORtO8stLfpf2rEVlWVJsyiyEP4Bhb5EBq/NM3hDAxJq4tW491YTctHS
+            XgGBOZRcVTlCpn3iy615ub78mNVMGRdB1BGcQVWY8NNi84Nw+neWFfPXvS83yz2N
+            bMJru4w747DNEaGKogeMmgH5USBAPEDts+CH1Bj5gA4mbUDzNxmXRF082ydOETM=
+            =Sz86
+            -----END PGP MESSAGE-----
+          fp: 05FA72D13D58F8D4588BE3FE5606FFB02A5F0984
+    encrypted_regex: ((?i)(pass($|word)|claim|secret($|[^N])|key|token|^data$|^stringData))
+    version: 3.8.1

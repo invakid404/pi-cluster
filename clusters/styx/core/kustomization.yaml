@@ -10,3 +10,4 @@ resources:
   - ./magicauth-crds.yaml
   - ./nfs.yaml
   - ./synology-csi.yaml
+  - ./minio.yaml
