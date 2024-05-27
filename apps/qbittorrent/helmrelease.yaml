@@ -31,7 +31,7 @@ spec:
           main:
             image:
               repository: ghcr.io/onedr0p/qbittorrent
-              tag: 4.6.4@sha256:261f811de1e3d9b99b67f2fbe2afdb080cb174a396b1a904e05c8a57cf873a05
+              tag: 4.6.5@sha256:2de10884d480fec3d42dfd6ed91ae2c11ef5aff1d64d4f4646779d6368de5d5f
             env:
               TZ: ${TIMEZONE}
               UMASK: "022"
