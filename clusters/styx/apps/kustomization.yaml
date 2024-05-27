@@ -14,3 +14,4 @@ resources:
   - ./arc-runners.yaml
   - ./webhook.yaml
   - ./magicauth.yaml
+  - ./outline.yaml

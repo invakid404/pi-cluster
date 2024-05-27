@@ -1,0 +1,27 @@
+apiVersion: magicauth.invak.id/v1
+kind: OAuthClient
+metadata:
+  name: outline
+spec:
+  audience:
+    - https://outline.${TAILSCALE_DOMAIN}
+  public: false
+  clientSecret: ${OUTLINE_OIDC_SECRET}
+  redirectUris:
+    - https://outline.${TAILSCALE_DOMAIN}/auth/oidc.callback
+  responseTypes:
+    - "id_token"
+    - "code"
+    - "token"
+    - "id_token token"
+    - "code id_token"
+    - "code token"
+    - "code id_token token"
+  grantTypes:
+    - "implicit"
+    - "refresh_token"
+    - "authorization_code"
+    - "password"
+    - "client_credentials"
+  scopes:
+    - "openid"
