@@ -9,3 +9,4 @@ resources:
   - ./tailscale-operator.yaml
   - ./magicauth-crds.yaml
   - ./nfs.yaml
+  - ./synology-csi.yaml
