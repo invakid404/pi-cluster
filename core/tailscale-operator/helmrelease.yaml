@@ -15,7 +15,7 @@ spec:
     values:
         operatorConfig:
             hostname: pi-tailscale-operator
-            defaultTags: tag:k8s,tag:pi
+            defaultTags: tag:k8s
             image:
                 pullPolicy: Always
         oauth:
@@ -29,8 +29,8 @@ sops:
     azure_kv: []
     hc_vault: []
     age: []
-    lastmodified: "2024-05-16T18:10:17Z"
-    mac: ENC[AES256_GCM,data:b2orob9mSo2vGOTaP0nHk39/JMknDF7qO+NXGJ1vK21WdMP/fBjHSPEOFoFcjSJ1kba8QP1GaRBlkRw1J8zLBAjfWMgGe/YA4cWpJ2TWlzKz86SiEEkYo1m+TSovTqre8h1NK981YqZCtzhvDIEyncwPh+ORiIQk98JVo8hOYkw=,iv:npcZvHydgTH1/RS8mydsOtGe/1D4nsLH7Weae5QdyKs=,tag:2xD+GwAxmvUOiBe9WNJY4A==,type:str]
+    lastmodified: "2024-06-01T22:51:57Z"
+    mac: ENC[AES256_GCM,data:ZIma3uR2D3tnOdxiMiWbjXk/LbW9IWJpWdu7y/3fDd7IcCUyDdXZyQjbd6a1m0gxvTauElUOWaFeJ0OZ9wVUi0DQ2rXQwe2m2bfYdzYGLhm6UEeaXN7vsxN3ifKxjN9DKYkagJA8pBxSk0A0m1CC5E4xCEJMV8q+6RZYh3l2W7A=,iv:ayimlizgAIRF5IdGlgaHI9VTWzizUWCfhqiyBm2pD6Y=,tag:KY3KuwOeYsD1C1FatECpNQ==,type:str]
     pgp:
         - created_at: "2024-01-25T22:17:48Z"
           enc: |-
