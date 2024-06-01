@@ -16,9 +16,11 @@ spec:
         name: bjw-s
         namespace: core
   install:
+    timeout: 30m
     remediation:
       retries: 3
   upgrade:
+    timeout: 30m
     cleanupOnFail: true
     remediation:
       retries: 3
@@ -90,9 +92,9 @@ spec:
       media:
         enabled: true
         type: hostPath
-        hostPath: /mnt/media
+        hostPath: /mnt/torrents
         globalMounts:
-          - path: /mnt/media
+          - path: /mnt/torrents
 
       configfiles:
         enabled: true
@@ -101,8 +103,9 @@ spec:
 
     defaultPodOptions:
       securityContext:
-        runAsUser: 0
-        runAsGroup: 0
+        runAsUser: ${SQUASH_UID}
+        runAsGroup: ${SQUASH_UID}
+        fsGroup: ${SQUASH_UID}
       dnsConfig:
         options:
           - name: ndots

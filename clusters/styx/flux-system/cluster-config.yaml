@@ -5,7 +5,9 @@ metadata:
   namespace: flux-system
 data:
   TAILSCALE_DOMAIN: qilin-qilin.ts.net
+
   NAS_HOSTNAME: nas
+  SQUASH_UID: "1024"
 
   QBITTORRENT_IP: 192.168.7.241
   PLEX_IP: 192.168.7.242
