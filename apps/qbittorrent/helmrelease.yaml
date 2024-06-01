@@ -89,6 +89,12 @@ spec:
         globalMounts:
           - path: /config/qBittorrent
 
+      cache:
+        enabled: true
+        type: emptyDir
+        globalMounts:
+          - path: /config/.cache
+
       media:
         enabled: true
         type: hostPath
