@@ -71,7 +71,7 @@ spec:
       media:
         enabled: true
         type: hostPath
-        hostPath: /mnt/media
+        hostPath: /mnt/torrents
         globalMounts:
           - path: /mnt/media
 
