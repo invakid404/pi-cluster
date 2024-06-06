@@ -108,6 +108,8 @@ spec:
         name: qbittorrent-config
 
     defaultPodOptions:
+      annotations:
+        reloader.stakater.com/auto: "true"
       securityContext:
         runAsUser: ${SQUASH_UID}
         runAsGroup: ${SQUASH_UID}
