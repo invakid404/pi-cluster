@@ -102,6 +102,13 @@ spec:
         globalMounts:
           - path: /mnt/torrents
 
+      incomplete:
+        enabled: true
+        type: hostPath
+        hostPath: /mnt/media/incomplete
+        globalMounts:
+          - path: /mnt/incomplete
+
       configfiles:
         enabled: true
         type: configMap
