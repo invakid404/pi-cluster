@@ -31,6 +31,8 @@ spec:
           main:
             env:
               PLEX_ADVERTISE_URL: https://${PLEX_IP}:32400,https://plex.${TAILSCALE_DOMAIN}:443
+              NVIDIA_VISIBLE_DEVICES: all
+              NVIDIA_DRIVER_CAPABILITIES: compute,video,utility
             image:
               repository: ghcr.io/onedr0p/plex
               tag: 1.40.2.8395-c67dce28e@sha256:13c3727ed0cafb34cd861bb4a2f3e1e1911aef1f56777f41c185fefef305787f
@@ -80,6 +82,7 @@ spec:
         type: emptyDir
 
     defaultPodOptions:
+      runtimeClassName: nvidia
       dnsConfig:
         options:
           - name: ndots
