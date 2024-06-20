@@ -10,3 +10,4 @@ resources:
   - ./arc.yaml
   - ./nfs.yaml
   - ./synology-csi.yaml
+  - ./nvidia-device-plugin.yaml

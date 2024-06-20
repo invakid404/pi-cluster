@@ -12,3 +12,4 @@ resources:
   - ./synology-csi.yaml
   - ./minio.yaml
   - ./redis.yaml
+  - ./nvidia-device-plugin.yaml
