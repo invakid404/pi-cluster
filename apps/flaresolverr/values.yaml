@@ -1,0 +1,35 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/common-3.1.0/charts/library/common/values.schema.json
+controllers:
+  main:
+    containers:
+      main:
+        image:
+          repository: ghcr.io/flaresolverr/flaresolverr
+          tag: v3.3.20@sha256:18da00baa8fbc1e0b396f4e749c52f7d5623ece8ba1075717b38cda6832b8328
+        env:
+          TZ: ${TIMEZONE}
+          LANG: en_GB
+          LOG_LEVEL: debug
+
+service:
+  main:
+    controller: main
+    ports:
+      http:
+        port: 8191
+
+ingress:
+  main:
+    enabled: true
+    className: tailscale
+    hosts:
+      - host: &host flaresolverr.${TAILSCALE_DOMAIN}
+        paths:
+          - path: /
+            service:
+              identifier: main
+              port: http
+    tls:
+      - hosts:
+          - *host

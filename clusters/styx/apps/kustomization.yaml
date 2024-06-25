@@ -15,3 +15,4 @@ resources:
   - ./webhook.yaml
   - ./magicauth.yaml
   - ./outline.yaml
+  - ./flaresolverr.yaml
