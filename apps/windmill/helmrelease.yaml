@@ -26,6 +26,8 @@ spec:
           replicas: 3
         - name: "native"
           replicas: 1
+        - name: "reports"
+          replicas: 1
 
     postgresql:
       enabled: false
