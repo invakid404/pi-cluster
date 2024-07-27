@@ -1,0 +1,57 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/common-3.1.0/charts/library/common/values.schema.json
+controllers:
+  main:
+    containers:
+      main:
+        image:
+          repository: ghcr.io/miniflux/miniflux
+          tag: 2.1.4@sha256:bfafdf3d8e8cc7aaefe80a8acd10e86ef62140eec792a9e9c6905305d53ea063
+        envFrom:
+          - secret: miniflux
+    initContainers:
+      01-init-db:
+        image:
+          repository: ghcr.io/onedr0p/postgres-init
+          tag: 16.1@sha256:dda75857689116d9c233ec0978cb905da0f952618dfbe1b8731aa1071044eaf0
+        env:
+          - name: INIT_POSTGRES_HOST
+            value: postgres.core.svc.cluster.local
+          - name: INIT_POSTGRES_SUPER_USER
+            value: postgres
+          - name: INIT_POSTGRES_SUPER_PASS
+            value: ${POSTGRES_PASSWORD}
+          - name: INIT_POSTGRES_USER
+            value: postgres
+          - name: INIT_POSTGRES_PASS
+            value: ${POSTGRES_PASSWORD}
+          - name: INIT_POSTGRES_DBNAME
+            value: miniflux
+
+defaultPodOptions:
+  annotations:
+    reloader.stakater.com/auto: "true"
+
+service:
+  main:
+    controller: main
+    ports:
+      http:
+        port: 8080
+
+ingress:
+  main:
+    enabled: true
+    className: tailscale
+    annotations:
+      tailscale.com/funnel: "true"
+    hosts:
+      - host: &host rss.${TAILSCALE_DOMAIN}
+        paths:
+          - path: /
+            service:
+              identifier: main
+              port: http
+    tls:
+      - hosts:
+          - *host

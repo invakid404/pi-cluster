@@ -16,3 +16,4 @@ resources:
   - ./magicauth.yaml
   - ./outline.yaml
   - ./flaresolverr.yaml
+  - ./miniflux.yaml
