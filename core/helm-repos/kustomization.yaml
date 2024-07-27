@@ -10,3 +10,4 @@ resources:
   - ./arc.yaml
   - ./nfs.yaml
   - ./synology-csi.yaml
+  - ./mermaid2svg.yaml

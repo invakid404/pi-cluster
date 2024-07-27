@@ -1,0 +1,32 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: mermaid2svg
+  namespace: apps
+spec:
+  interval: 10m0s
+  chart:
+    spec:
+      chart: ./charts/mermaid2svg
+      version: 1.0.5
+      interval: 10m0s
+      sourceRef:
+        kind: GitRepository
+        name: mermaid2svg
+        namespace: core
+
+  values:
+    image:
+      name: ghcr.io/invakid404/mermaid2svg
+      pullPolicy: IfNotPresent
+      tag: sha-deadc27@sha256:ee45ca13122b5312d892be0889dede6fe37718e8c7363a61974d9fce0b1d9bc7
+    ingress:
+      enabled: true
+      className: "tailscale"
+      annotations:
+      hosts:
+        - &mermaid2svg-host "mermaid2svg.${TAILSCALE_DOMAIN}"
+      tls:
+        - hosts:
+            - *mermaid2svg-host
