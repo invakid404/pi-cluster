@@ -6,11 +6,12 @@ controllers:
       main:
         image:
           repository: ghcr.io/invakid404/magicauth
-          tag: latest@sha256:03d2c3f1d18090fec38fd0817dae41412a3732884535e5ee6a46a6f3014a902e
+          tag: latest@sha256:8587709b40d13b398b2965f4b49f802b11cd20a959cbe528995a5b7e3f2a92b3
           pullPolicy: Always
         env:
-          PORT: &port 8080
-          BASE_URL: https://auth.${TAILSCALE_DOMAIN}
+          MAGICAUTH_PORT: &port 8080
+          MAGICAUTH_BASE_URL: https://auth.${TAILSCALE_DOMAIN}
+          MAGICAUTH_ENABLE_K8S: "true"
 
 defaultPodOptions:
   imagePullSecrets:
