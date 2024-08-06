@@ -18,3 +18,4 @@ resources:
   - ./flaresolverr.yaml
   - ./miniflux.yaml
   - ./mermaid2svg.yaml
+  - ./fagsts.yaml

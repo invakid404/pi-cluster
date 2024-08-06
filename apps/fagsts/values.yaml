@@ -1,0 +1,40 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/common-3.1.0/charts/library/common/values.schema.json
+controllers:
+  main:
+    containers:
+      main:
+        image:
+          repository: ghcr.io/invakid404/fags.ts
+          tag: master@sha256:43f775858a0c4e2e3588bb4f0d12ead9dc5fac968d9232d9426cbf88a513c3ab
+        envFrom:
+          - secretRef:
+              name: fagsts
+
+defaultPodOptions:
+  imagePullSecrets:
+    - name: docker-config
+
+service:
+  main:
+    controller: main
+    ports:
+      http:
+        port: 3000
+
+ingress:
+  main:
+    enabled: true
+    className: tailscale
+    annotations:
+      tailscale.com/funnel: "true"
+      tailscale.com/hostname: fagsts
+    hosts:
+      - host: fagsts.${TAILSCALE_DOMAIN}
+        paths:
+          - path: /
+            service:
+              identifier: main
+              port: http
+    tls:
+      - hosts:
+          - fagsts.${TAILSCALE_DOMAIN}
