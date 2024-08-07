@@ -5,7 +5,7 @@ controllers:
       main:
         image:
           repository: ghcr.io/invakid404/fags.ts
-          tag: master@sha256:80400685087608307969d320d815a9af23733224ff388d299dfd5987d5da9cf7
+          tag: master@sha256:e535d779c95e5beaa1717cad5ea520e19439be7050a54cef89c552ca10af24f8
         envFrom:
           - secretRef:
               name: fagsts
