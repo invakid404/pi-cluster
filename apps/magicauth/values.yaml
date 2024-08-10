@@ -6,7 +6,7 @@ controllers:
       main:
         image:
           repository: ghcr.io/invakid404/magicauth
-          tag: latest@sha256:8587709b40d13b398b2965f4b49f802b11cd20a959cbe528995a5b7e3f2a92b3
+          tag: latest@sha256:046acbf924b4a91d6fc0cc5b2182737e874971211f81db1f37f5a0b8ab4041e8
           pullPolicy: Always
         env:
           MAGICAUTH_PORT: &port 8080
