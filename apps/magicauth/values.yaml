@@ -6,14 +6,19 @@ controllers:
       main:
         image:
           repository: ghcr.io/invakid404/magicauth
-          tag: latest@sha256:046acbf924b4a91d6fc0cc5b2182737e874971211f81db1f37f5a0b8ab4041e8
+          tag: master@sha256:4160fb2db42f8762b3133d8238f2882b6f370c9a9b7119962567b11982bfe5fb
           pullPolicy: Always
         env:
           MAGICAUTH_PORT: &port 8080
           MAGICAUTH_BASE_URL: https://auth.${TAILSCALE_DOMAIN}
           MAGICAUTH_ENABLE_K8S: "true"
+        envFrom:
+          - secretRef:
+              name: magicauth
 
 defaultPodOptions:
+  annotations:
+    reloader.stakater.com/auto: "true"
   imagePullSecrets:
     - name: docker-config
 
