@@ -5,7 +5,7 @@ controllers:
       main:
         image:
           repository: ghcr.io/invakid404/image-host
-          tag: 1.2.4@sha256:8649c24136fe7d3c92743210b4ff17b211d5026e9b96be8639dbd0ab649c5c38
+          tag: 1.2.5@sha256:ac2d983411cc776b27a32eb7013743ff9ac65a25d59dcd43d37b342793c090cb
         envFrom:
           - secretRef:
               name: image-host
