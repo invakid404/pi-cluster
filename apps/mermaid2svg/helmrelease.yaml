@@ -30,3 +30,5 @@ spec:
       tls:
         - hosts:
             - *mermaid2svg-host
+    serviceMonitor:
+      enabled: false
