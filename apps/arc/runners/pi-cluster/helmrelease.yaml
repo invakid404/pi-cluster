@@ -25,38 +25,90 @@ spec:
     values:
         runnerScaleSetName: pi-cluster
         githubConfigUrl: https://github.com/invakid404/pi-cluster
-        containerMode:
-            type: dind
+        template:
+            spec:
+                initContainers:
+                    - name: init-dind-externals
+                      image: ghcr.io/actions/actions-runner:latest
+                      command:
+                        - cp
+                        - -r
+                        - -v
+                        - /home/runner/externals/.
+                        - /home/runner/tmpDir/
+                      volumeMounts:
+                        - name: dind-externals
+                          mountPath: /home/runner/tmpDir
+                containers:
+                    - name: runner
+                      image: ghcr.io/actions/actions-runner:latest
+                      command:
+                        - /home/runner/run.sh
+                      env:
+                        - name: DOCKER_HOST
+                          value: unix:///var/run/docker.sock
+                      volumeMounts:
+                        - name: work
+                          mountPath: /home/runner/_work
+                        - name: dind-sock
+                          mountPath: /var/run
+                    - name: dind
+                      image: docker:dind
+                      args:
+                        - dockerd
+                        - --host=unix:///var/run/docker.sock
+                        - --group=$(DOCKER_GROUP_GID)
+                      env:
+                        - name: DOCKER_GROUP_GID
+                          value: "123"
+                        - name: DOCKER_IPTABLES_LEGACY
+                          value: "1"
+                      securityContext:
+                        privileged: true
+                      volumeMounts:
+                        - name: work
+                          mountPath: /home/runner/_work
+                        - name: dind-sock
+                          mountPath: /var/run
+                        - name: dind-externals
+                          mountPath: /home/runner/externals
+                volumes:
+                    - name: work
+                      emptyDir: {}
+                    - name: dind-sock
+                      emptyDir: {}
+                    - name: dind-externals
+                      emptyDir: {}
         githubConfigSecret:
-            github_token: ENC[AES256_GCM,data:27PRdK4fCKKNbz9N4t38baEa1c2W722F/y/kZYVUSZCdAjWBD3BX5w==,iv:KXET4X5iimHtTRXr3e+sFaYu3THCHOagY4fO9lCAGvs=,tag:il2ozLcQb8Ju7tU2346JYQ==,type:str]
+            github_token: ENC[AES256_GCM,data:MJb9GmuFPZEBYFz3FI1ML3vAVmQZUYHU1dgzYy0qhKok+EOFtBfC5w==,iv:ugtjys3MoXsUDZ//EyVolq2enUjOY5CMbZGkpfNpZR4=,tag:1lqVIVh+Mu8kmhZCtnqa0w==,type:str]
 sops:
     kms: []
     gcp_kms: []
     azure_kv: []
     hc_vault: []
     age: []
-    lastmodified: "2024-05-22T09:57:49Z"
-    mac: ENC[AES256_GCM,data:jRQeCt/G4lcJPUnTT+wgK50gwrDI+aaSdZuwQmHkb7yqwhQxajGBsQsMjvCi+5AY0YNRN6CcHfB93XZsur5ZW7QbpT8ZWXG0p9lvfNdBUyPiqHMz9CCAly+3F+1Q/bHg8FFmDmCo24eVoqB7Ktzt8N5qV95UfR9JGaJpah2CAm0=,iv:oPmyI53kSIkBdnpXF6lNNDUGQZ5Xv67bPBldUHfViAo=,tag:Z/UdMknc58KU6biqbr+CQw==,type:str]
+    lastmodified: "2024-08-30T12:29:01Z"
+    mac: ENC[AES256_GCM,data:uuQ+PpgUN0cUAW1exgx8j5q/EM+bL2skQb1afdG+fQLLJzCyrJX25n8eqce9aFzsQqEUyUhVyFCn71q+SDAjQZZjcxDKkaXRRJN4d2qbacd6kXTbshab8Da5QOrhp+nv+8AEb8xd0oC8JyqWH7Kpe5cy2vo+hfqJ7bD8TGxygpM=,iv:sGxXnx3xUr+GQfGj8GceqqUOA9VMsbKUuAW1blcXm68=,tag:SAWtimdlyj2ndu2hfHxBMg==,type:str]
     pgp:
-        - created_at: "2024-05-21T13:59:59Z"
+        - created_at: "2024-08-30T12:29:01Z"
           enc: |-
             -----BEGIN PGP MESSAGE-----
 
-            hQIMA83EhJxcYAoBAQ/8C01UG0u0QoXjgT50F9nIC+ji4CXKMg6II5KxrdX5G1d1
-            ysYuurArdtIp4q2uIAzN6j68l4WBFd34bxRGWb1fghCMT5S0W0iuQg0QvpCRxv0/
-            i8n2+Ux5Ps5SziAY0flZwVzwJf6Hcl9UQBdKGZG+wsS0G87rg0bpqIZ9Cqu4wg0x
-            p/pdKWzuD0fTz0KtZLgCZNSiih5gZ25fZbKNrkD2RFoeRHvtMFCanLKk7NYqX7Fj
-            JvDwNwqhkGWoqHJ8CdjMgXBfmksr2FBkkkpvCsERn2LlL42IPBcKUWlCVpvzj6DF
-            WVrUMO6Hc41+vZvYoJT9lMqQFNsq9JeJ22DLRnlnUPXjcW1NvgYUVo+b+KS6YZXE
-            ofKfe3VR8DMMVcTICv65ak+HddMt16Cgn0UjC7qiCUV3AixFCHYtsNHDkZq0YJTV
-            hm/qiyko2RT/UHfBz775RZHcZrnqaid7fPzRFOkK6NboTr1sn6Cf/Hew/umR7ydn
-            16yjyG+Egi/XEHOWrHxZr+vpntJw5T4M8xdVpezXbImfe0oHV3uh+M1OmBUYauw0
-            1G08RZ0LgZyMRvb/2grvyCtmOqQOH+36JQcAmYRbm8qrEcw29wAl7hQE7oT7fL82
-            nwA+kn6PIYyksiG5o3OysiGYGTSIEs8JOvORgFvY6PFlICDvRF5bwdpWqLaVw3TS
-            XgGjZyGlU3hf+gqX/kKx5zrVkNW9k/sbTAPDWPxMMlP5g1GZVwPMVrKwKbaRR/hx
-            o1ho62EE0QvAOqQm4yrtq7WGV6lQKrU1vj7ZDNr1hCuwsBIOUFuit6baoox3ylA=
-            =02k1
+            hQIMA83EhJxcYAoBARAAy4qTm1vjEFFV2qJTXZRHxrcBTLzV29Z6oI56aJuOLzSR
+            sIbFrIOeBaHjZ+OlnUzjgDRfvqKMvD1MJ/LHjM/EFfeAwhZpDmdl8zTjlobNCsdF
+            3pqJhPqd9URM6ufW1bsEEOZvdxYjoIGhMZK3dV0qjtB9Uav8hLcpOoGC92eHc8b2
+            poUt1fIAhol5YqUmTxZuUX0XWiLUhzBSe3NDmX9g9FlKD3n2Kpk/F09f3hMXPoBN
+            I0JFrDW4vwsF8vXx1dfYvzDC9Hb3jROoSh6yXIEZgHcsSLqUN99iECJEPB2QQAKD
+            dOH4/uyEaRvn99heurDCJAmXA/N6pGyfg41Q34acaFoTElHcvIOAwMiqRjsI9Cxh
+            VyY1+xgGbY78GddjmVm73rlzDQC32Ivr0+GbtMstzhaLkuksh5j/rdMbT7a/tqGl
+            fxam/f0wjykAaBdIdie8u64AtU4+onUpkDohwqI6Qv7oezl6Lgr/bDG20BNfzsPP
+            EMjZjk4oSvOzVWXqecelAtSwj3z0W7bD1zqeZ4SOzoUB7w2pUfLujniO322+Da8A
+            78o2r5yM1cigi1Tf9OiblQ4qZ0hf7XFHIHggfYTCOiD2LBccBsoL/zGOfYuBirXI
+            pXcvsJFhstzlPGlKNplxrwf7Ri9HUBILvoHWLVKIvUiHfI8rZBRZm/KnqRXMfY3S
+            XgFF/So0bc0N64WcyyYSEO6reVan9ULQaRU4ZKYwXDIUlNCubocGpJkvANwaa2px
+            xjDsZQrdjXfqZk/pc5WxY8ZLB3eH0rcf32ABbeYKsFmR+fIPydKWAtGDGMj6sLU=
+            =XI/k
             -----END PGP MESSAGE-----
           fp: 05FA72D13D58F8D4588BE3FE5606FFB02A5F0984
     encrypted_regex: ((?i)(pass($|word)|claim|secret($|[^N])|key|token|^data$|^stringData))
-    version: 3.8.1
+    version: 3.9.0
