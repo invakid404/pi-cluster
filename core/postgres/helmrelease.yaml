@@ -25,7 +25,8 @@ spec:
       postgresql:
         auth:
           postgresPassword: ${POSTGRES_PASSWORD}
-
+    commonLabels:
+      tailscale.com/proxy-class: "default"
     primary:
       service:
         annotations:

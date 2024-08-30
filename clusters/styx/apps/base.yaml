@@ -22,6 +22,6 @@ spec:
       name: sops-gpg
   dependsOn:
     - name: reloader
-    - name: tailscale-operator
+    - name: tailscale-config
     - name: nfs
     - name: synology-csi

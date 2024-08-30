@@ -19,3 +19,9 @@ resources:
   - ./miniflux.yaml
   - ./mermaid2svg.yaml
   - ./fagsts.yaml
+patches:
+  - path: ../proxyclass-patch.yaml
+    target:
+      group: kustomize.toolkit.fluxcd.io
+      version: v1
+      kind: Kustomization
