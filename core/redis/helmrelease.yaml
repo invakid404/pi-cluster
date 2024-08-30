@@ -29,3 +29,5 @@ spec:
       persistence:
         enabled: true
         existingClaim: redis-data
+      nodeSelector:
+        kubernetes.io/hostname: styx

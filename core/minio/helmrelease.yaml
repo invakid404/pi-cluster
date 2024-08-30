@@ -47,3 +47,6 @@ spec:
       extraTls:
         - hosts:
             - *api-host
+
+    nodeSelector:
+      kubernetes.io/hostname: styx

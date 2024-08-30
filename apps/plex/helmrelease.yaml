@@ -80,6 +80,8 @@ spec:
         type: emptyDir
 
     defaultPodOptions:
+      nodeSelector:
+        kubernetes.io/hostname: styx
       dnsConfig:
         options:
           - name: ndots
