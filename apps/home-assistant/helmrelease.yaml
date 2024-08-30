@@ -127,6 +127,8 @@ spec:
         name: home-assistant-config
 
     defaultPodOptions:
+      nodeSelector:
+        kubernetes.io/hostname: styx
       hostNetwork: true
       dnsPolicy: "ClusterFirstWithHostNet"
       dnsConfig:
