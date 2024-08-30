@@ -19,10 +19,9 @@ jobs:
     outputs:
       contexts: ${{ github.event_name == 'push' && steps.find-changed.outputs.all_changed_files || steps.find-all.outputs.contexts }}
     steps:
-      - name: Install Git
-        if: github.event_name == 'push'
+      - name: Install tools
         run: |
-          sudo apt update && sudo apt install -y git
+          sudo apt update && sudo apt install -y git jq
 
       - name: Checkout
         uses: actions/checkout@v4
