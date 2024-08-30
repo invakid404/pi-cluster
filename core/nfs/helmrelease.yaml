@@ -19,3 +19,5 @@ spec:
       mountOptions:
         - hard
         - nfsvers=4.1
+    nodeSelector:
+      kubernetes.io/hostname: styx
