@@ -9,6 +9,7 @@ resources:
   - ./prowlarr.yaml
   - ./filebrowser.yaml
   - ./pplx-tracker.yaml
+  - ./image-host-config.yaml
   - ./image-host.yaml
   - ./arc.yaml
   - ./arc-runners.yaml
