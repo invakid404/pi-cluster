@@ -4,33 +4,15 @@ controllers:
     containers:
       main:
         image:
-          repository: ghcr.io/invakid404/image-host
-          tag: 1.2.7@sha256:3f7eea62b03b8e36aee928b4e5ff546f604c2709fbdeef441e59d51663c86dac
+          repository: caddy
+          tag: 2.8.4@sha256:60c984f83bb0a3c2ac8f9dd067672dd6b8d6719baf1fe712fc52c7b221ce4e02
         envFrom:
           - secretRef:
               name: image-host
-    initContainers:
-      01-init-db:
-        image:
-          repository: ghcr.io/onedr0p/postgres-init
-          tag: 16.1@sha256:dda75857689116d9c233ec0978cb905da0f952618dfbe1b8731aa1071044eaf0
-        env:
-          - name: INIT_POSTGRES_HOST
-            value: postgres.core.svc.cluster.local
-          - name: INIT_POSTGRES_SUPER_USER
-            value: postgres
-          - name: INIT_POSTGRES_SUPER_PASS
-            value: ${POSTGRES_PASSWORD}
-          - name: INIT_POSTGRES_USER
-            value: postgres
-          - name: INIT_POSTGRES_PASS
-            value: ${POSTGRES_PASSWORD}
-          - name: INIT_POSTGRES_DBNAME
-            value: image-host
 
 defaultPodOptions:
-  imagePullSecrets:
-    - name: docker-config
+  annotations:
+    reloader.stakater.com/auto: "true"
 
 service:
   main:
@@ -38,6 +20,14 @@ service:
     ports:
       http:
         port: 8080
+
+persistence:
+  config:
+    enabled: true
+    type: configMap
+    name: image-host-config
+    globalMounts:
+      - path: /etc/caddy
 
 ingress:
   main:
