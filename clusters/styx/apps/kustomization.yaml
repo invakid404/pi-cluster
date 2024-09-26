@@ -21,6 +21,7 @@ resources:
   - ./mermaid2svg.yaml
   - ./fagsts.yaml
   - ./mosquitto.yaml
+  - ./govee2mqtt.yaml
 patches:
   - path: ../proxyclass-patch.yaml
     target:

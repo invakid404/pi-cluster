@@ -1,0 +1,16 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/common-3.1.0/charts/library/common/values.schema.json
+controllers:
+  main:
+    containers:
+      main:
+        image:
+          repository: ghcr.io/wez/govee2mqtt
+          tag: latest@sha256:9eec314711fa0b2a7122ad57205a948dd91f6ca698d76cb92d2587df85b25d72
+        envFrom:
+          - secretRef:
+              name: govee2mqtt
+
+defaultPodOptions:
+  hostNetwork: true
+  annotations:
+    reloader.stakater.com/auto: "true"
