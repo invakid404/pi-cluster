@@ -1,0 +1,14 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ./resources
+  - ./pvc.yaml
+  - ./secret.yaml
+  - ./helmrelease.yaml
+configMapGenerator:
+  - name: mosquitto-values
+    namespace: apps
+    files:
+      - values.yaml
+configurations:
+  - kustomizeconfig.yaml

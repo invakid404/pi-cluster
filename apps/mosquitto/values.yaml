@@ -1,0 +1,69 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/common-3.1.0/charts/library/common/values.schema.json
+controllers:
+  main:
+    strategy: RollingUpdate
+    initContainers:
+      init-config:
+        image:
+          repository: eclipse-mosquitto
+          tag: 2.0.18@sha256:c47592c8e66b54c8356c5151e67669e5786bfd4ee5ecd73791c2eec78e49d4c0
+        command: ["/bin/sh", "-c"]
+        args: >-
+          cp /tmp/passwd /mosquitto/external_config/passwd &&
+          chmod 0700 /mosquitto/external_config/passwd
+    containers:
+      main:
+        image:
+          repository: docker.io/library/eclipse-mosquitto
+          tag: 2.0.18@sha256:c47592c8e66b54c8356c5151e67669e5786bfd4ee5ecd73791c2eec78e49d4c0
+
+defaultPodOptions:
+  annotations:
+    reloader.stakater.com/auto: "true"
+  nodeSelector:
+    kubernetes.io/hostname: styx
+
+service:
+  main:
+    controller: main
+    annotations:
+      metallb.universe.tf/loadBalancerIPs: "${MOSQUITTO_IP}"
+    type: LoadBalancer
+    externalTrafficPolicy: Local
+    ports:
+      http:
+        port: 1883
+
+persistence:
+  data:
+    enabled: true
+    existingClaim: mosquitto
+    globalMounts:
+      - path: /mosquitto/data
+
+  config:
+    enabled: true
+    type: configMap
+    name: mosquitto
+    globalMounts:
+      - path: /mosquitto/config/mosquitto.conf
+        subPath: mosquitto.conf
+        readOnly: true
+
+  logs:
+    type: emptyDir
+    globalMounts:
+      - path: /mosquitto/log`
+
+  passwd:
+    type: secret
+    name: mosquitto
+    globalMounts:
+      - path: /tmp/passwd
+        subPath: passwd
+        readOnly: true
+
+  external-config:
+    type: emptyDir
+    globalMounts:
+      - path: /mosquitto/external_config

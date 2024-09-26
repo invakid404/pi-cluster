@@ -20,6 +20,7 @@ resources:
   - ./miniflux.yaml
   - ./mermaid2svg.yaml
   - ./fagsts.yaml
+  - ./mosquitto.yaml
 patches:
   - path: ../proxyclass-patch.yaml
     target:
