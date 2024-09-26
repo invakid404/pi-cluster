@@ -31,7 +31,7 @@ spec:
           main:
             image:
               repository: ghcr.io/home-assistant/home-assistant
-              tag: 2024.1.2@sha256:5ace95850001fbb5a70c09edd45f9b35b9d077e4828b313785afd0099958e723
+              tag: 2024.9.3@sha256:21e5cc26a070e4e82c92cb0aa3c28f3fc2e9099ce64e729966e90b0086d652a2
             probes:
               liveness:
                 enabled: false
@@ -82,7 +82,7 @@ spec:
             args:
               - |
                 # renovate: github-release depName=hacs/integration
-                HACS_VERSION="1.34.0"
+                HACS_VERSION="2.0.1"
                 mkdir -p /config/custom_components
                 rm -rf /config/custom_components/hacs
                 busybox wget -qO- "https://github.com/hacs/integration/releases/download/$${HACS_VERSION}/hacs.zip"  | busybox unzip -d /config/custom_components/hacs -
