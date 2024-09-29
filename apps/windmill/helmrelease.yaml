@@ -7,11 +7,11 @@ spec:
   interval: 10m0s
   chart:
     spec:
-      chart: windmill
-      version: 2.0.276
+      chart: ./charts/windmill
+      version: 2.0.279
       interval: 10m0s
       sourceRef:
-        kind: HelmRepository
+        kind: GitRepository
         name: windmill
         namespace: core
 
