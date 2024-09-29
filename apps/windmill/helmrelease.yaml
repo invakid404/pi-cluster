@@ -8,7 +8,7 @@ spec:
   chart:
     spec:
       chart: ./charts/windmill
-      version: 2.0.279
+      version: 2.0.280
       interval: 10m0s
       sourceRef:
         kind: GitRepository
@@ -25,10 +25,13 @@ spec:
       lspReplicas: 1
       workerGroups:
         - name: "default"
+          controller: StatefulSet
           replicas: 3
         - name: "native"
+          controller: StatefulSet
           replicas: 1
         - name: "reports"
+          controller: StatefulSet
           replicas: 1
 
     postgresql:
