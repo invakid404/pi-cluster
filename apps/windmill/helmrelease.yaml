@@ -27,6 +27,19 @@ spec:
         - name: "default"
           controller: StatefulSet
           replicas: 3
+          volumeClaimTemplates:
+            - metadata:
+                name: windmill-workers-default
+              spec:
+                accessModes:
+                  - "ReadWriteOnce"
+                storageClassName: "nfs-client"
+                resources:
+                  requests:
+                    storage: 1Gi
+          volumeMounts:
+            - name: windmill-workers-default
+              mountPath: /tmp/windmill/cache
         - name: "native"
           controller: StatefulSet
           replicas: 1
