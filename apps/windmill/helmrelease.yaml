@@ -46,6 +46,14 @@ spec:
         - name: "reports"
           controller: StatefulSet
           replicas: 1
+        - name: "libreoffice"
+          controller: StatefulSet
+          replicas: 1
+          extraEnv:
+            - name: INIT_SCRIPT
+              value: "apt update -y && apt install -y libreoffice"
+            - name: WORKER_TAGS
+              value: libreoffice
 
     postgresql:
       enabled: false
