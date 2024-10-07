@@ -22,6 +22,7 @@ resources:
   - ./fagsts.yaml
   - ./mosquitto.yaml
   - ./govee2mqtt.yaml
+  - ./mergedoc.yaml
 patches:
   - path: ../proxyclass-patch.yaml
     target:

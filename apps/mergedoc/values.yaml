@@ -1,0 +1,39 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/common-3.1.0/charts/library/common/values.schema.json
+controllers:
+  main:
+    containers:
+      main:
+        image:
+          repository: ghcr.io/invakid404/mergedoc
+          tag: latest@sha256:94ebdfb375e4829abec7025bb50597a5bec6f2625626adcba2bdeb62ff078c3b
+        envFrom:
+          - secretRef:
+              name: mergedoc
+
+defaultPodOptions:
+  imagePullSecrets:
+    - name: docker-config
+
+service:
+  main:
+    controller: main
+    ports:
+      http:
+        port: 3000
+
+ingress:
+  main:
+    enabled: true
+    className: tailscale
+    annotations:
+      tailscale.com/hostname: mergedoc
+    hosts:
+      - host: mergedoc.${TAILSCALE_DOMAIN}
+        paths:
+          - path: /
+            service:
+              identifier: main
+              port: http
+    tls:
+      - hosts:
+          - mergedoc.${TAILSCALE_DOMAIN}
