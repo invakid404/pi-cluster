@@ -5,6 +5,7 @@ metadata:
   namespace: apps
 spec:
   interval: 10m0s
+  timeout: 1h0s
   chart:
     spec:
       chart: ./charts/windmill
