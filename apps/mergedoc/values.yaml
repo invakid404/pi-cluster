@@ -11,6 +11,8 @@ controllers:
               name: mergedoc
 
 defaultPodOptions:
+  annotations:
+    reloader.stakater.com/auto: "true"
   imagePullSecrets:
     - name: docker-config
 
