@@ -5,7 +5,7 @@ controllers:
       main:
         image:
           repository: ghcr.io/invakid404/mergedoc
-          tag: latest@sha256:94ebdfb375e4829abec7025bb50597a5bec6f2625626adcba2bdeb62ff078c3b
+          tag: latest@sha256:6e101d8de0f2ae0d535cffcda850868512adf810002e33e6aec002275ca189bf
         envFrom:
           - secretRef:
               name: mergedoc
