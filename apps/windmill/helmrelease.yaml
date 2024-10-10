@@ -9,7 +9,7 @@ spec:
   chart:
     spec:
       chart: ./charts/windmill
-      version: 2.0.289
+      version: 2.0.294
       interval: 10m0s
       sourceRef:
         kind: GitRepository
@@ -19,7 +19,7 @@ spec:
   values:
     windmill:
       image: ghcr.io/windmill-labs/windmill-full
-      tag: 1.405.4
+      tag: 1.407.2
       baseDomain: &windmill-domain wmill.${TAILSCALE_DOMAIN}
       databaseUrl: postgres://postgres:${POSTGRES_PASSWORD}@postgres.core.svc.cluster.local/windmill?sslmode=disable
       appReplicas: 1
