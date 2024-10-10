@@ -24,6 +24,7 @@ spec:
         keepHistory: false
     values:
         runnerScaleSetName: pi-cluster
+        maxRunners: 1
         githubConfigUrl: https://github.com/invakid404/pi-cluster
         template:
             spec:
@@ -85,8 +86,8 @@ sops:
     azure_kv: []
     hc_vault: []
     age: []
-    lastmodified: "2024-10-10T15:44:58Z"
-    mac: ENC[AES256_GCM,data:LqrTnneLupAkD4xmDu/+DR5obi6S2RQyqqiPu20ldg25KqE2FNmI9Xg1g9qStheBlXzZ60j3ON/yzNdAFnFyMNzCLNvM9UWbcKxJ22zoWUvmEZ4aldN5bYKde4lZNaIeFWyoS1EqWN7/Ss5Nj3sL+vwjVYualCQzj9FZYctYvjo=,iv:oplCEZfO/4vlPejBOAKTI6KcZwHCCR0MUJg4HIW7wi8=,tag:oVRho9AUZVsflvRNF99c7g==,type:str]
+    lastmodified: "2024-10-10T16:01:15Z"
+    mac: ENC[AES256_GCM,data:lfRC4CAkrfwW2MHQrER/GDP3kiUh3fKfNLRzV6eVFXZ2TeVs9LkcY1oawEbrE2LcDl5qhx132IYTJzLih+vxHBCBrd5bQTzwo77fcHnABt/SGAp4WQm6/nkdt7orH1W84YbTAfkNyYj3inBPYMbgVVyIGLQZQ0Nr6N6qkA7G1kk=,iv:P9ADcpxZHWFr0M0+q20VAQ268p53SeSlXu95MHRSx2I=,tag:MG+Di3e+fiDi7NBgA2nPLw==,type:str]
     pgp:
         - created_at: "2024-08-30T12:29:01Z"
           enc: |-
