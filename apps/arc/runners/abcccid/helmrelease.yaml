@@ -8,7 +8,7 @@ spec:
     chart:
         spec:
             chart: gha-runner-scale-set
-            version: 0.9.2
+            version: 0.9.3
             sourceRef:
                 kind: HelmRepository
                 name: actions-runner-controller
@@ -41,8 +41,8 @@ sops:
     azure_kv: []
     hc_vault: []
     age: []
-    lastmodified: "2024-05-22T09:44:15Z"
-    mac: ENC[AES256_GCM,data:1394DPhsjXhDCPut/rdXGgQYJoKvBDc+QJSgdmSifm1dlEFfPKVpBaR+l3ehMmiZ9zG+hZAzhyzo5NgAIB//RCukLvVo0UwdDHGaUw1eqw9lgg3aFKYdw0b3nlP/KjG3LaKY6NRTOwdSoufSrIyN801dQ9LY9LrBYaJ0ZjTmz0A=,iv:v16Rp1pga53ySc4ncVuKFjt6RqwYgtv89KXNlKQ2ZNw=,tag:iFRod4vmJ9OBQeF2TrbOhQ==,type:str]
+    lastmodified: "2024-10-10T15:23:22Z"
+    mac: ENC[AES256_GCM,data:qRyHXPWT0sfWMgAJHLt3Skj36YN3VzrQV6Brg6SM+CbE36V5KNk5gLMaerbXiN/T9Dt4SVlW8zS/CWHFKPlozCyicumShLBMogImeY0MALgNaIoEOzw6wUoNJojZF2si4HoN6NFzv1yQFRGMuV5I0qs40GKrXUOp7TzFkF5laHY=,iv:7RK6d8no6xAQee28zWOsSDEAB3Tp5qRm7A3EyWOckLQ=,tag:jneE4OT8gU7D8mKbBsnAsQ==,type:str]
     pgp:
         - created_at: "2024-05-21T13:59:59Z"
           enc: |-
@@ -65,4 +65,4 @@ sops:
             -----END PGP MESSAGE-----
           fp: 05FA72D13D58F8D4588BE3FE5606FFB02A5F0984
     encrypted_regex: ((?i)(pass($|word)|claim|secret($|[^N])|key|token|^data$|^stringData))
-    version: 3.8.1
+    version: 3.9.0
