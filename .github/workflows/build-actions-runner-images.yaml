@@ -84,5 +84,3 @@ jobs:
           context: ${{ matrix.context }}
           push: true
           tags: ${{ env.REGISTRY }}/invakid404/runners/${{ steps.image-name.outputs.name }}:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
