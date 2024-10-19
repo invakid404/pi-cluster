@@ -117,6 +117,8 @@ spec:
     defaultPodOptions:
       annotations:
         reloader.stakater.com/auto: "true"
+      nodeSelector:
+        kubernetes.io/hostname: styx
       securityContext:
         runAsUser: ${SQUASH_UID}
         runAsGroup: ${SQUASH_UID}
