@@ -49,4 +49,4 @@ spec:
             - *api-host
 
     nodeSelector:
-      kubernetes.io/hostname: styx
+      iscsi: "true"

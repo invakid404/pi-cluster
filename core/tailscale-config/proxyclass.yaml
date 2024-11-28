@@ -6,4 +6,4 @@ spec:
   statefulSet:
     pod:
       nodeSelector:
-        kubernetes.io/hostname: styx
+        tcpmss: "true"

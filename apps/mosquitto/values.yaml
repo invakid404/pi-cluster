@@ -21,7 +21,7 @@ defaultPodOptions:
   annotations:
     reloader.stakater.com/auto: "true"
   nodeSelector:
-    kubernetes.io/hostname: styx
+    iscsi: "true"
 
 service:
   main:

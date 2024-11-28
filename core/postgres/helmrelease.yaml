@@ -40,4 +40,4 @@ spec:
         failureThreshold: 60
         periodSeconds: 30
       nodeSelector:
-        kubernetes.io/hostname: styx
+        iscsi: "true"

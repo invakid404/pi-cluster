@@ -81,7 +81,7 @@ spec:
 
     defaultPodOptions:
       nodeSelector:
-        kubernetes.io/hostname: styx
+        iscsi: "true"
       dnsConfig:
         options:
           - name: ndots

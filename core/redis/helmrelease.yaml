@@ -30,4 +30,4 @@ spec:
         enabled: true
         existingClaim: redis-data
       nodeSelector:
-        kubernetes.io/hostname: styx
+        iscsi: "true"
