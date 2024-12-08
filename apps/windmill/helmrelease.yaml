@@ -55,6 +55,12 @@ spec:
               value: "apt update -y && apt install -y ffmpeg"
             - name: WORKER_TAGS
               value: video
+          volumeMounts:
+            - name: tmp-dir
+              mountPath: /tmp/windmill
+          volumes:
+            - name: tmp-dir
+              emptyDir: {}
         - name: "libreoffice"
           controller: StatefulSet
           replicas: 1
