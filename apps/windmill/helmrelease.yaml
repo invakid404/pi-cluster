@@ -61,6 +61,8 @@ spec:
           volumes:
             - name: tmp-dir
               emptyDir: {}
+          nodeSelector:
+            kubernetes.io/hostname: hydra
         - name: "libreoffice"
           controller: StatefulSet
           replicas: 1
