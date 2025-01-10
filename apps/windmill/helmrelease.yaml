@@ -41,6 +41,11 @@ spec:
           volumeMounts:
             - name: windmill-workers-default
               mountPath: /tmp/windmill/cache
+          extraEnv:
+            - name: INIT_SCRIPT
+              value: >-
+                echo "//npm.pkg.github.com/:_authToken = ${GHCR_TOKEN}" >> ~/.npmrc;
+                echo "@invakid404:registry=https://npm.pkg.github.com" >> ~/.npmrc;
         - name: "native"
           controller: StatefulSet
           replicas: 1
