@@ -22,6 +22,7 @@ spec:
       tag: 1.444.0
       baseDomain: &windmill-domain wmill.${TAILSCALE_DOMAIN}
       databaseUrl: postgres://postgres:${POSTGRES_PASSWORD}@postgres.core.svc.cluster.local/windmill?sslmode=disable
+      npmConfigRegistry: http://verdaccio-npm.apps.svc.cluster.local:4873/
       appReplicas: 1
       lspReplicas: 1
       workerGroups:
@@ -71,22 +72,6 @@ spec:
               value: "apt update -y && apt install -y libreoffice"
             - name: WORKER_TAGS
               value: libreoffice
-        - name: ghcr
-          controller: StatefulSet
-          replicas: 1
-          volumeMounts:
-            - name: tmp-dir
-              mountPath: /tmp/windmill
-          volumes:
-            - name: tmp-dir
-              emptyDir: {}
-          extraEnv:
-            - name: INIT_SCRIPT
-              value: >-
-                echo "//npm.pkg.github.com/:_authToken = ${GHCR_TOKEN}" >> ~/.npmrc;
-                echo "@invakid404:registry=https://npm.pkg.github.com" >> ~/.npmrc;
-            - name: WORKER_TAGS
-              value: ghcr
 
     postgresql:
       enabled: false
