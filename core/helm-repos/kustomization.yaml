@@ -11,3 +11,4 @@ resources:
   - ./nfs.yaml
   - ./synology-csi.yaml
   - ./mermaid2svg.yaml
+  - ./verdaccio.yaml

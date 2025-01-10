@@ -23,6 +23,7 @@ resources:
   - ./mosquitto.yaml
   - ./govee2mqtt.yaml
   - ./mergedoc.yaml
+  - ./verdaccio.yaml
 patches:
   - path: ../proxyclass-patch.yaml
     target:

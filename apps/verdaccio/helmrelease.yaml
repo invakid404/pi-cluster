@@ -1,0 +1,69 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: &app verdaccio-npm
+  namespace: apps
+spec:
+  interval: 10m0s
+  timeout: 1h0s
+  chart:
+    spec:
+      chart: verdaccio
+      version: 4.26.1
+      interval: 10m0s
+      sourceRef:
+        kind: HelmRepository
+        name: verdaccio
+        namespace: core
+
+  values:
+    annotations:
+      reloader.stakater.com/auto: "true"
+
+    persistence:
+      enabled: true
+      existingClaim: verdaccio-data
+
+    ingress:
+      enabled: true
+      className: tailscale
+      annotations:
+        tailscale.com/hostname: verdaccio
+      hosts:
+        - &host verdaccio.${TAILSCALE_DOMAIN}
+      tls:
+        - hosts:
+            - *host
+
+    configMap: |
+      storage: /verdaccio/storage/data
+
+      web:
+        title: Verdaccio
+
+      uplinks:
+        npmjs:
+          url: https://registry.npmjs.org/
+          agent_options:
+            keepAlive: true
+            maxSockets: 40
+            maxFreeSockets: 10
+        ghcr:
+          url: https://npm.pkg.github.com
+          auth:
+            type: bearer
+            token: "${GHCR_TOKEN}"
+          agent_options:
+            keepAlive: true
+            maxSockets: 40
+            maxFreeSockets: 10
+
+      packages:
+        '@invakid404/*':
+          access: $all
+          publish: $authenticated
+          proxy: ghcr
+        '**':
+          access: $all
+          publish: $authenticated
+          proxy: npmjs
