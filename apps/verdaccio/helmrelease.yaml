@@ -57,6 +57,7 @@ spec:
             keepAlive: true
             maxSockets: 40
             maxFreeSockets: 10
+          cache: false
 
       packages:
         '@invakid404/*':
