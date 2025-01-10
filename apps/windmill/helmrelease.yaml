@@ -41,11 +41,6 @@ spec:
           volumeMounts:
             - name: windmill-workers-default
               mountPath: /tmp/windmill/cache
-          extraEnv:
-            - name: INIT_SCRIPT
-              value: >-
-                echo "//npm.pkg.github.com/:_authToken = ${GHCR_TOKEN}" >> ~/.npmrc;
-                echo "@invakid404:registry=https://npm.pkg.github.com" >> ~/.npmrc;
         - name: "native"
           controller: StatefulSet
           replicas: 1
@@ -76,6 +71,22 @@ spec:
               value: "apt update -y && apt install -y libreoffice"
             - name: WORKER_TAGS
               value: libreoffice
+        - name: ghcr
+          controller: StatefulSet
+          replicas: 1
+          volumeMounts:
+            - name: tmp-dir
+              mountPath: /tmp/windmill
+          volumes:
+            - name: tmp-dir
+              emptyDir: {}
+          extraEnv:
+            - name: INIT_SCRIPT
+              value: >-
+                echo "//npm.pkg.github.com/:_authToken = ${GHCR_TOKEN}" >> ~/.npmrc;
+                echo "@invakid404:registry=https://npm.pkg.github.com" >> ~/.npmrc;
+            - name: WORKER_TAGS
+              value: ghcr
 
     postgresql:
       enabled: false
