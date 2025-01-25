@@ -8,11 +8,11 @@ spec:
   timeout: 1h0s
   chart:
     spec:
-      chart: ./charts/windmill
-      version: 2.0.294
+      chart: windmill
+      version: 2.0.345
       interval: 10m0s
       sourceRef:
-        kind: GitRepository
+        kind: HelmRepository
         name: windmill
         namespace: core
 

@@ -1,10 +1,8 @@
 apiVersion: source.toolkit.fluxcd.io/v1beta2
-kind: GitRepository
+kind: HelmRepository
 metadata:
   name: windmill
   namespace: core
 spec:
   interval: 10m0s
-  url: https://github.com/invakid404/windmill-helm-charts
-  ref:
-    branch: main
+  url: https://windmill-labs.github.io/windmill-helm-charts/
