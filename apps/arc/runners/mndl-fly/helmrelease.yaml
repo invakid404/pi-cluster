@@ -1,0 +1,61 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+    name: arc-mndl-fly
+    namespace: apps
+spec:
+    interval: 10m0s
+    chart:
+        spec:
+            chart: gha-runner-scale-set
+            version: 0.9.3
+            sourceRef:
+                kind: HelmRepository
+                name: actions-runner-controller
+                namespace: core
+    install:
+        remediation:
+            retries: 3
+    upgrade:
+        cleanupOnFail: true
+        remediation:
+            retries: 3
+    uninstall:
+        keepHistory: false
+    values:
+        runnerScaleSetName: mndl-fly
+        maxRunners: 3
+        githubConfigUrl: ENC[AES256_GCM,data:4T/rwXovGzeLc65LeOwvnI08n6QFe4d3D7MvS2KIVvdczdZwGfx4,iv:msPpDlkwd8dPKfd71Q0Cpi5e8FHlzh6gYz1ZeX/kU/o=,tag:5Ufe/5R0XwBcfHrIraqIsQ==,type:str]
+        githubConfigSecret:
+            github_token: ENC[AES256_GCM,data:Gn7v3GX0m/2G3i18K45oCtl8p4aZ13oNFMraoSi1lw+tZg/AL9d2OA==,iv:BQbeNTfGVM9edi6v6jsw2yoNONna63v1ktpeXNGrGvE=,tag:ckY+iX2qFd2ZhjLpzOwnEg==,type:str]
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age: []
+    lastmodified: "2025-03-18T14:52:24Z"
+    mac: ENC[AES256_GCM,data:0WUQjVmZjyibrczKOKnmsTdkkudKMvxKyOCYlOKYzshdCGluLcrn8/GHB1Kx9Y7kTHpbJjNHZXJUwrO+lwQlb9muMg1FF/vg/+vjvoIIt0DGg3ZApNEOIj+ewydmEZV3jjqwUknzv1dfMWiUQgMVKaK9E0Co4xsOmrn1OpZYfNo=,iv:/TJFSEaVfaU4cC147uFcnxZQpKQ13zh8BtoEO69Gtsk=,tag:lhYIw0D+cgR1VxXveIj5Ag==,type:str]
+    pgp:
+        - created_at: "2025-03-18T14:06:52Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            hQIMA83EhJxcYAoBAQ//XtObIcsp2DKl/b9eocBhqEASpNowSW0Hk6PT0N11w1U2
+            AyujpftLQOdf7mXX1Gqk0aiSzUx8d5ArEiidNyMk19gMVsXaP/6tZvcT5QeRXB/o
+            Sa515sUYNxr/Vyl45Vl9X0L0sfiw147UNtr71U08IpCEzs+9G3mOxac4Oo4/Qo3X
+            KFe8GGCJfW5zgv8zBgkxQcfnFU4ytCcqag8oOJOsg7RWeOxyCEqgjhLggu8mW6wU
+            RWS0aSdsc2jyeNXo6/187aGGv/tvfaKElUtSxogzCAO8UHIp2p4a3mTy5oNw9EQj
+            G5Y5UpqnEoLgWivlI5qmJ3bYXrVN5Qj4+cllLWM+gqVcBp2bb4eE02r8qphHmPwo
+            cAHR9nv4bHQ74hXTl7f5G1kE55EXlIN4P+GjuzHpEQ60tQCtUxvpBb5e1qa+nmsK
+            H/R+GqoDFDY2va8sE7JDnqPMEvKOmS4yFBogxbBLsInuVPIW3sCNVq9fRKfbUiGp
+            0KMTnZuoaz7f8itCt03Ede1EypyX55aXdiYKvo5iHhy1yUD97+sQJTzACXwlXwl9
+            BV458a2l0kKEJUE0o/AhcaWhKTsB7DKUh2CPYE5Zub28GIdwxTR/XxXaNDRdn+gO
+            +JHUoVHxhxrDwIxJSIpo+a+CSQeuavUB1CahUQS6V80AKLVLPqIQjQCfQbhOa7jS
+            XgGwuAri4IG76aVzWAOKWoC9ZNkkagjT+21jKIHqjpb2mcpD5ETrcTXRSUFiG6Ep
+            T7YRV5eURI7hPrN1rY3fU7tq+rykHZ2FhSZBr3N4WxicqVJbYb15K3oYB7b4wjA=
+            =qC+4
+            -----END PGP MESSAGE-----
+          fp: 05FA72D13D58F8D4588BE3FE5606FFB02A5F0984
+    encrypted_regex: ((?i)(pass($|word)|claim|secret($|[^N])|key|token|^data$|^stringData|^githubConfigUrl))
+    version: 3.9.4
