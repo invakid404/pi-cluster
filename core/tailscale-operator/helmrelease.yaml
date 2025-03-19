@@ -8,7 +8,7 @@ spec:
     chart:
         spec:
             chart: tailscale-operator
-            version: 1.76.6
+            version: 1.80.3
             sourceRef:
                 kind: HelmRepository
                 name: tailscale
@@ -29,8 +29,8 @@ sops:
     azure_kv: []
     hc_vault: []
     age: []
-    lastmodified: "2024-11-10T22:46:16Z"
-    mac: ENC[AES256_GCM,data:/e9ziKyjk8Gdr86zKjl+E7DJL7zBzDDuPjJX5zATMMAevgQpW8d7BjWOEMT4KJ08w45/cAeNtzgUTQ56fKGa0f6Kd6uM3RDEZ//s2LgEpdi5PJaFGUk2CQVd2iPFzpchURoPKe1VzsRxHILlL2u02ciIuStkzHkB5Eara8NzYZE=,iv:qQ27TEc1NQqsPCdRwjxSz6p0tXmiafmnD1H5oQMXI5Q=,tag:Vusf+l+yBhHKIwX6nnGsYA==,type:str]
+    lastmodified: "2025-03-19T15:47:57Z"
+    mac: ENC[AES256_GCM,data:GW2FdZf9s5u6AchHYlH8G5BJHkAQVx/mg3cgGQF6pI2nYJX/hx/rS04aeMvQw3vXRf401V/1OEx+efKrc0dXmVNx0ogR59r1Wu9RpFo/UjNPwYOi3QK0aQG8ZPI8Xs3vpjbmt+zHuZVQr6xsTF9guTBUsh0hpHs4qAfWo6oL+A0=,iv:9+snqJ2mPOI0T8QwLYWDMNy77vzapyZlvtCh9es9vgU=,tag:r/y9xpF26tbqAhkgUEAqMg==,type:str]
     pgp:
         - created_at: "2024-01-25T22:17:48Z"
           enc: |-
@@ -53,4 +53,4 @@ sops:
             -----END PGP MESSAGE-----
           fp: 05FA72D13D58F8D4588BE3FE5606FFB02A5F0984
     encrypted_regex: ((?i)(pass($|word)|claim|secret($|[^N])|key|token|^data$|^stringData))
-    version: 3.9.1
+    version: 3.9.4
