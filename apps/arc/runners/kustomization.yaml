@@ -4,5 +4,3 @@ resources:
   - ./pi-cluster
   - ./abcccid
   - ./invablog
-  - ./mndl
-  - ./mndl-fly
