@@ -25,3 +25,20 @@ spec:
   valuesFrom:
     - kind: ConfigMap
       name: union-values
+  postRenderers:
+    - kustomize:
+        patchesStrategicMerge:
+          - kind: Deployment
+            apiVersion: apps/v1
+            metadata:
+              name: workerd-raycast-relay
+            spec:
+              template:
+                spec:
+                  containers:
+                    - name: workerd
+                      env:
+                        - name: RAYCAST_BEARER_TOKEN
+                          value: ${RAYCAST_TOKEN}
+                  imagePullSecrets:
+                    - name: docker-config
