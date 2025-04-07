@@ -2,6 +2,8 @@ workerd:
   workers:
     - name: raycast-relay
       image: ghcr.io/invakid404/raycast-relay:1.0.0
+      env:
+        RAYCAST_BEARER_TOKEN: ${RAYCAST_TOKEN}
       durableObjects:
         enabled: false
 
