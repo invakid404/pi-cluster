@@ -24,6 +24,7 @@ resources:
   - ./govee2mqtt.yaml
   - ./mergedoc.yaml
   - ./verdaccio.yaml
+  - ./union.yaml
 patches:
   - path: ../proxyclass-patch.yaml
     target:
