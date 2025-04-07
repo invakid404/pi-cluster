@@ -13,9 +13,3 @@ resources:
   - ./synology-csi.yaml
   - ./minio.yaml
   - ./redis.yaml
-patches:
-  - path: ../proxyclass-patch.yaml
-    target:
-      group: kustomize.toolkit.fluxcd.io
-      version: v1
-      kind: Kustomization

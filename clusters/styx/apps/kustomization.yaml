@@ -25,9 +25,3 @@ resources:
   - ./mergedoc.yaml
   - ./verdaccio.yaml
   - ./union.yaml
-patches:
-  - path: ../proxyclass-patch.yaml
-    target:
-      group: kustomize.toolkit.fluxcd.io
-      version: v1
-      kind: Kustomization
