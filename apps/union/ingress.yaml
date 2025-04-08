@@ -3,6 +3,7 @@ kind: Ingress
 metadata:
   annotations:
     tailscale.com/hostname: raycast-relay
+    tailscale.com/funnel: "true"
   name: &name workerd-raycast-relay
   namespace: apps
 spec:
