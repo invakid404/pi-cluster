@@ -1,0 +1,47 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/common-3.1.0/charts/library/common/values.schema.json
+controllers:
+  main:
+    containers:
+      main:
+        image:
+          repository: ghcr.io/open-webui/open-webui
+          tag: 0.6.5@sha256:f888e9b076d2d7f7a84c3c7159b02754caad7cf974c1b1fc3c53209b64423fbb
+        envFrom:
+          - secretRef:
+              name: open-webui
+
+defaultPodOptions:
+  annotations:
+    reloader.stakater.com/auto: "true"
+
+service:
+  main:
+    controller: main
+    ports:
+      http:
+        port: 8080
+
+ingress:
+  main:
+    enabled: true
+    className: tailscale
+    annotations:
+      tailscale.com/funnel: "true"
+      tailscale.com/hostname: llm
+    hosts:
+      - host: llm.${TAILSCALE_DOMAIN}
+        paths:
+          - path: /
+            service:
+              identifier: main
+              port: http
+    tls:
+      - hosts:
+          - llm.${TAILSCALE_DOMAIN}
+
+persistence:
+  data:
+    enabled: true
+    existingClaim: open-webui-data
+    globalMounts:
+      - path: /app/backend/data

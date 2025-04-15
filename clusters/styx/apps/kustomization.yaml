@@ -25,3 +25,4 @@ resources:
   - ./mergedoc.yaml
   - ./verdaccio.yaml
   - ./union.yaml
+  - ./open-webui.yaml

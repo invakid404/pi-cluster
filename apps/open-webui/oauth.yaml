@@ -1,0 +1,29 @@
+apiVersion: magicauth.invak.id/v1
+kind: OAuthClient
+metadata:
+  name: open-webui
+spec:
+  audience:
+    - https://llm.${TAILSCALE_DOMAIN}
+  public: false
+  clientSecret: ${OPEN_WEBUI_OIDC_SECRET}
+  redirectUris:
+    - https://llm.${TAILSCALE_DOMAIN}/oauth/oidc/callback
+  responseTypes:
+    - "id_token"
+    - "code"
+    - "token"
+    - "id_token token"
+    - "code id_token"
+    - "code token"
+    - "code id_token token"
+  grantTypes:
+    - "implicit"
+    - "refresh_token"
+    - "authorization_code"
+    - "password"
+    - "client_credentials"
+  scopes:
+    - "openid"
+    - "profile"
+    - "email"
