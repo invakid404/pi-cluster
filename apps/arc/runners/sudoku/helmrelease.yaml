@@ -28,14 +28,22 @@ spec:
         githubConfigUrl: https://github.com/invakid404/sudoku
         githubConfigSecret:
             github_token: ENC[AES256_GCM,data:27PRdK4fCKKNbz9N4t38baEa1c2W722F/y/kZYVUSZCdAjWBD3BX5w==,iv:KXET4X5iimHtTRXr3e+sFaYu3THCHOagY4fO9lCAGvs=,tag:il2ozLcQb8Ju7tU2346JYQ==,type:str]
+        template:
+            spec:
+                containers:
+                    - name: runner
+                      image: ghcr.io/invakid404/runners/sudoku
+                      imagePullPolicy: Always
+                      command:
+                        - /home/runner/run.sh
 sops:
     kms: []
     gcp_kms: []
     azure_kv: []
     hc_vault: []
     age: []
-    lastmodified: "2025-04-22T13:09:40Z"
-    mac: ENC[AES256_GCM,data:GNvC5a7v4+kokHa4pTiJG4jW8xQQ2caWwAOrnFDrxeBbaz+qw5ezuABrvxlMxBFI//2fsOOqIgwfesi4f/5db2Eg4CJJC22Nenm28iPTYGeEmR9ekmU1ZULZWDP7PsqSsxIokC0sVfPZweiIgwo+e42EU5JEMGvxSGehdFfAhlA=,iv:pjT/MQg/d299uaIEhxD+Zrny1tBm5OdWj8VWmqXef0U=,tag:mnx3mxKSC1/0g12w1wlqJA==,type:str]
+    lastmodified: "2025-04-22T15:33:33Z"
+    mac: ENC[AES256_GCM,data:7/vOevkxeLwABfx2c7v2FiAmtYI1wMC3/2smSIEKEHnLuj+0aT+AG194315yD3DLSTNo9t3EYGtpeYhnyUCqx5zvDvzA5NDMTrF1VRS8M/LPFF/8MMbgfthCWTE6uLAjMy6VZSYwaBfUqxuulxd2s0s2CYpvupqG2DbrW9AobHo=,iv:4urwct6CWHKHoqm+N68dRVvLSFwKLZmAKCMUisM3V2c=,tag:mg+dd1Tk+4GEF71ldQkyXQ==,type:str]
     pgp:
         - created_at: "2024-05-21T13:59:59Z"
           enc: |-
