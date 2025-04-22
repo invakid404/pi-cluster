@@ -1,0 +1,61 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+    name: arc-sudoku
+    namespace: apps
+spec:
+    interval: 10m0s
+    chart:
+        spec:
+            chart: gha-runner-scale-set
+            version: 0.9.3
+            sourceRef:
+                kind: HelmRepository
+                name: actions-runner-controller
+                namespace: core
+    install:
+        remediation:
+            retries: 3
+    upgrade:
+        cleanupOnFail: true
+        remediation:
+            retries: 3
+    uninstall:
+        keepHistory: false
+    values:
+        runnerScaleSetName: sudoku
+        maxRunners: 1
+        githubConfigUrl: https://github.com/invakid404/sudoku
+        githubConfigSecret:
+            github_token: ENC[AES256_GCM,data:27PRdK4fCKKNbz9N4t38baEa1c2W722F/y/kZYVUSZCdAjWBD3BX5w==,iv:KXET4X5iimHtTRXr3e+sFaYu3THCHOagY4fO9lCAGvs=,tag:il2ozLcQb8Ju7tU2346JYQ==,type:str]
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age: []
+    lastmodified: "2025-04-22T13:09:40Z"
+    mac: ENC[AES256_GCM,data:GNvC5a7v4+kokHa4pTiJG4jW8xQQ2caWwAOrnFDrxeBbaz+qw5ezuABrvxlMxBFI//2fsOOqIgwfesi4f/5db2Eg4CJJC22Nenm28iPTYGeEmR9ekmU1ZULZWDP7PsqSsxIokC0sVfPZweiIgwo+e42EU5JEMGvxSGehdFfAhlA=,iv:pjT/MQg/d299uaIEhxD+Zrny1tBm5OdWj8VWmqXef0U=,tag:mnx3mxKSC1/0g12w1wlqJA==,type:str]
+    pgp:
+        - created_at: "2024-05-21T13:59:59Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            hQIMA83EhJxcYAoBAQ/8C01UG0u0QoXjgT50F9nIC+ji4CXKMg6II5KxrdX5G1d1
+            ysYuurArdtIp4q2uIAzN6j68l4WBFd34bxRGWb1fghCMT5S0W0iuQg0QvpCRxv0/
+            i8n2+Ux5Ps5SziAY0flZwVzwJf6Hcl9UQBdKGZG+wsS0G87rg0bpqIZ9Cqu4wg0x
+            p/pdKWzuD0fTz0KtZLgCZNSiih5gZ25fZbKNrkD2RFoeRHvtMFCanLKk7NYqX7Fj
+            JvDwNwqhkGWoqHJ8CdjMgXBfmksr2FBkkkpvCsERn2LlL42IPBcKUWlCVpvzj6DF
+            WVrUMO6Hc41+vZvYoJT9lMqQFNsq9JeJ22DLRnlnUPXjcW1NvgYUVo+b+KS6YZXE
+            ofKfe3VR8DMMVcTICv65ak+HddMt16Cgn0UjC7qiCUV3AixFCHYtsNHDkZq0YJTV
+            hm/qiyko2RT/UHfBz775RZHcZrnqaid7fPzRFOkK6NboTr1sn6Cf/Hew/umR7ydn
+            16yjyG+Egi/XEHOWrHxZr+vpntJw5T4M8xdVpezXbImfe0oHV3uh+M1OmBUYauw0
+            1G08RZ0LgZyMRvb/2grvyCtmOqQOH+36JQcAmYRbm8qrEcw29wAl7hQE7oT7fL82
+            nwA+kn6PIYyksiG5o3OysiGYGTSIEs8JOvORgFvY6PFlICDvRF5bwdpWqLaVw3TS
+            XgGjZyGlU3hf+gqX/kKx5zrVkNW9k/sbTAPDWPxMMlP5g1GZVwPMVrKwKbaRR/hx
+            o1ho62EE0QvAOqQm4yrtq7WGV6lQKrU1vj7ZDNr1hCuwsBIOUFuit6baoox3ylA=
+            =02k1
+            -----END PGP MESSAGE-----
+          fp: 05FA72D13D58F8D4588BE3FE5606FFB02A5F0984
+    encrypted_regex: ((?i)(pass($|word)|claim|secret($|[^N])|key|token|^data$|^stringData))
+    version: 3.9.4
