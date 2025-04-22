@@ -24,7 +24,7 @@ spec:
         keepHistory: false
     values:
         runnerScaleSetName: sudoku
-        maxRunners: 1
+        maxRunners: 2
         githubConfigUrl: https://github.com/invakid404/sudoku
         githubConfigSecret:
             github_token: ENC[AES256_GCM,data:27PRdK4fCKKNbz9N4t38baEa1c2W722F/y/kZYVUSZCdAjWBD3BX5w==,iv:KXET4X5iimHtTRXr3e+sFaYu3THCHOagY4fO9lCAGvs=,tag:il2ozLcQb8Ju7tU2346JYQ==,type:str]
@@ -42,8 +42,8 @@ sops:
     azure_kv: []
     hc_vault: []
     age: []
-    lastmodified: "2025-04-22T15:33:33Z"
-    mac: ENC[AES256_GCM,data:7/vOevkxeLwABfx2c7v2FiAmtYI1wMC3/2smSIEKEHnLuj+0aT+AG194315yD3DLSTNo9t3EYGtpeYhnyUCqx5zvDvzA5NDMTrF1VRS8M/LPFF/8MMbgfthCWTE6uLAjMy6VZSYwaBfUqxuulxd2s0s2CYpvupqG2DbrW9AobHo=,iv:4urwct6CWHKHoqm+N68dRVvLSFwKLZmAKCMUisM3V2c=,tag:mg+dd1Tk+4GEF71ldQkyXQ==,type:str]
+    lastmodified: "2025-04-22T18:44:38Z"
+    mac: ENC[AES256_GCM,data:ZGeW8e/L+PknutDxgiWrJC6NmbUEc3ka0hsgCQwlG0HNx+35PJo6R1wMmzkWDQZOVLuabsOlDX+OeiyCCgFea0iOog/JqOPyeJDvR5PiR28ulahoQLBrF4iaCpPM5TMGKBz/MukJfsB5GZuxaBAc7W27KOncbU8/7kYBIZct/ws=,iv:UpiSQj7avWvfKqfbRLYaYgzsIN1Ki483ZurMw9cJ3gQ=,tag:p1pZ+R9C3HfoM/WQDXqpzg==,type:str]
     pgp:
         - created_at: "2024-05-21T13:59:59Z"
           enc: |-
