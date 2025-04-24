@@ -30,20 +30,64 @@ spec:
             github_token: ENC[AES256_GCM,data:27PRdK4fCKKNbz9N4t38baEa1c2W722F/y/kZYVUSZCdAjWBD3BX5w==,iv:KXET4X5iimHtTRXr3e+sFaYu3THCHOagY4fO9lCAGvs=,tag:il2ozLcQb8Ju7tU2346JYQ==,type:str]
         template:
             spec:
+                initContainers:
+                    - name: init-dind-externals
+                      image: ghcr.io/actions/actions-runner:latest
+                      command:
+                        - cp
+                        - -r
+                        - -v
+                        - /home/runner/externals/.
+                        - /home/runner/tmpDir/
+                      volumeMounts:
+                        - name: dind-externals
+                          mountPath: /home/runner/tmpDir
                 containers:
                     - name: runner
                       image: ghcr.io/invakid404/runners/sudoku
-                      imagePullPolicy: Always
                       command:
                         - /home/runner/run.sh
+                      env:
+                        - name: DOCKER_HOST
+                          value: unix:///var/run/docker.sock
+                      volumeMounts:
+                        - name: work
+                          mountPath: /home/runner/_work
+                        - name: dind-sock
+                          mountPath: /var/run
+                    - name: dind
+                      image: docker:24.0.7-dind-alpine3.18
+                      args:
+                        - dockerd
+                        - --host=unix:///var/run/docker.sock
+                        - --group=$(DOCKER_GROUP_GID)
+                      env:
+                        - name: DOCKER_GROUP_GID
+                          value: "123"
+                      securityContext:
+                        privileged: true
+                      volumeMounts:
+                        - name: work
+                          mountPath: /home/runner/_work
+                        - name: dind-sock
+                          mountPath: /var/run
+                        - name: dind-externals
+                          mountPath: /home/runner/externals
+                volumes:
+                    - name: work
+                      emptyDir: {}
+                    - name: dind-sock
+                      emptyDir: {}
+                    - name: dind-externals
+                      emptyDir: {}
 sops:
     kms: []
     gcp_kms: []
     azure_kv: []
     hc_vault: []
     age: []
-    lastmodified: "2025-04-22T18:44:38Z"
-    mac: ENC[AES256_GCM,data:ZGeW8e/L+PknutDxgiWrJC6NmbUEc3ka0hsgCQwlG0HNx+35PJo6R1wMmzkWDQZOVLuabsOlDX+OeiyCCgFea0iOog/JqOPyeJDvR5PiR28ulahoQLBrF4iaCpPM5TMGKBz/MukJfsB5GZuxaBAc7W27KOncbU8/7kYBIZct/ws=,iv:UpiSQj7avWvfKqfbRLYaYgzsIN1Ki483ZurMw9cJ3gQ=,tag:p1pZ+R9C3HfoM/WQDXqpzg==,type:str]
+    lastmodified: "2025-04-24T20:57:29Z"
+    mac: ENC[AES256_GCM,data:AwoWMhjLaFVijYeVem0HxqzbPshvpieFuplwDKpGg/jmS+MC/uMDwmdqd7+2xLpsYuQXwyjkurAQL1TsGYnuAch2VzHz0p6YTBVqVDsGhFWmjGZX8GpHf0YnWZnx407dRVvCdXdADZAyNZwU2k3I8k2eAhyWbRbqWppk8mVnn48=,iv:ie2pcTLi15X/qHf8eS02UoyWm4jJY0+INZgsZMS4ySI=,tag:MIo+0kxuzBhMeIrUAUj8jA==,type:str]
     pgp:
         - created_at: "2024-05-21T13:59:59Z"
           enc: |-
