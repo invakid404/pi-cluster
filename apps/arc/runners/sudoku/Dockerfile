@@ -8,4 +8,4 @@ RUN sudo apt-get update \
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sudo sh -s -- -y --no-modify-path \
     && sudo /root/.cargo/bin/rustup default stable
 
-ENV PATH="/root/.cargo/bin:${PATH}"
+RUN echo "PATH=/root/.cargo/bin:${PATH}" >> /etc/environment
