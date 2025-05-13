@@ -1,0 +1,42 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/common-3.1.0/charts/library/common/values.schema.json
+controllers:
+  main:
+    containers:
+      main:
+        image:
+          repository: ghcr.io/invakid404/invapaste
+          tag: 0.0.1@sha256:e93bcb5a70a1b1064047552fa1b5ea7339c7a610a180617d0d9a368f4e8c393a
+        envFrom:
+          - secretRef:
+              name: invapaste
+
+defaultPodOptions:
+  annotations:
+    reloader.stakater.com/auto: "true"
+  imagePullSecrets:
+    - name: docker-config
+
+service:
+  main:
+    controller: main
+    ports:
+      http:
+        port: 8080
+
+ingress:
+  main:
+    enabled: true
+    className: tailscale
+    annotations:
+      tailscale.com/funnel: "true"
+      tailscale.com/hostname: paste
+    hosts:
+      - host: paste.${TAILSCALE_DOMAIN}
+        paths:
+          - path: /
+            service:
+              identifier: main
+              port: http
+    tls:
+      - hosts:
+          - paste.${TAILSCALE_DOMAIN}

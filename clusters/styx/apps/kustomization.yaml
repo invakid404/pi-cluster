@@ -26,3 +26,4 @@ resources:
   - ./verdaccio.yaml
   - ./union.yaml
   - ./open-webui.yaml
+  - ./invapaste.yaml
