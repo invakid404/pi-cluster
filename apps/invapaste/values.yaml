@@ -1,11 +1,13 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/common-3.1.0/charts/library/common/values.schema.json
 controllers:
   main:
+    replicas: 2
+    strategy: RollingUpdate
     containers:
       main:
         image:
           repository: ghcr.io/invakid404/invapaste
-          tag: 0.0.4@sha256:6bd4b4cb77d2d309502988db96ab1669d048fcc4c2a656380d1fcf7465b657f6
+          tag: 0.0.5@sha256:a22490a312a48de3b0653ed7eebf7832414d3a89da22a2653de5723ead20515c
         envFrom:
           - secretRef:
               name: invapaste
