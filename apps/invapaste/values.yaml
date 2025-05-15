@@ -7,7 +7,7 @@ controllers:
       main:
         image:
           repository: ghcr.io/invakid404/invapaste
-          tag: 0.0.7@sha256:813034a222fea3e2e44b499ebd240cfb4d1627bc782a30911e841add31ab9d94
+          tag: 0.0.9@sha256:9ac248e31750321921d875ac2c671db0f14ce057aa2703c36eefc451d32b4974
         envFrom:
           - secretRef:
               name: invapaste
