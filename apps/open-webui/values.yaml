@@ -5,7 +5,7 @@ controllers:
       main:
         image:
           repository: ghcr.io/open-webui/open-webui
-          tag: 0.6.5@sha256:f888e9b076d2d7f7a84c3c7159b02754caad7cf974c1b1fc3c53209b64423fbb
+          tag: 0.6.11@sha256:166c6144120d104edcf8f88789c301533db07d0e149b2e6ad509fa5a6fba5b58
         envFrom:
           - secretRef:
               name: open-webui
