@@ -29,6 +29,9 @@ spec:
         - name: "default"
           controller: StatefulSet
           replicas: 3
+          extraEnv:
+            - name: INIT_SCRIPT
+              value: "apt update -y && apt install -y expect"
           volumeClaimTemplates:
             - metadata:
                 name: windmill-workers-default
