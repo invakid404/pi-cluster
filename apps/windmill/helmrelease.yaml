@@ -51,6 +51,9 @@ spec:
         - name: "reports"
           controller: StatefulSet
           replicas: 1
+          extraEnv:
+            - name: INIT_SCRIPT
+              value: "apt update -y && apt install -y build-essential chromium"
         - name: "video"
           controller: StatefulSet
           replicas: 1
