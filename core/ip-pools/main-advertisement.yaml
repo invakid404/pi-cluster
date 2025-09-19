@@ -6,3 +6,6 @@ metadata:
 spec:
   ipAddressPools:
     - main
+  nodeSelectors:
+  - matchLabels:
+      kubernetes.io/hostname: hydra
