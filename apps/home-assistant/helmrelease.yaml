@@ -31,7 +31,7 @@ spec:
           main:
             image:
               repository: ghcr.io/home-assistant/home-assistant
-              tag: 2024.9.3@sha256:21e5cc26a070e4e82c92cb0aa3c28f3fc2e9099ce64e729966e90b0086d652a2
+              tag: 2025.10.1@sha256:98cd45c1f0ab9972e046ffa875b0f805e693463f629d4b5c73b6fa764d99d897
             probes:
               liveness:
                 enabled: false
