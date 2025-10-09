@@ -23,3 +23,4 @@ spec:
       name: sops-gpg
   dependsOn:
     - name: apps-base
+    - name: magicauth
