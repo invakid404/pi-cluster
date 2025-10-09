@@ -1,29 +1,30 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
+  - ./arc-runners.yaml
+  - ./arc.yaml
   - ./base.yaml
-  - ./home-assistant.yaml
-  - ./qbittorrent.yaml
-  - ./plex.yaml
-  - ./windmill.yaml
-  - ./prowlarr.yaml
+  - ./fagsts.yaml
   - ./filebrowser.yaml
-  - ./pplx-tracker.yaml
+  - ./flaresolverr.yaml
+  - ./govee2mqtt.yaml
+  - ./home-assistant.yaml
   - ./image-host-config.yaml
   - ./image-host.yaml
-  - ./arc.yaml
-  - ./arc-runners.yaml
-  - ./webhook.yaml
-  - ./magicauth.yaml
-  - ./outline.yaml
-  - ./flaresolverr.yaml
-  - ./miniflux.yaml
-  - ./mermaid2svg.yaml
-  - ./fagsts.yaml
-  - ./mosquitto.yaml
-  - ./govee2mqtt.yaml
-  - ./mergedoc.yaml
-  - ./verdaccio.yaml
-  - ./union.yaml
-  - ./open-webui.yaml
   - ./invapaste.yaml
+  - ./magicauth.yaml
+  - ./mergedoc.yaml
+  - ./mermaid2svg.yaml
+  - ./miniflux.yaml
+  - ./mosquitto.yaml
+  - ./open-webui.yaml
+  - ./outline.yaml
+  - ./plex.yaml
+  - ./pplx-tracker.yaml
+  - ./prowlarr.yaml
+  - ./qbittorrent.yaml
+  - ./qui.yaml
+  - ./union.yaml
+  - ./verdaccio.yaml
+  - ./webhook.yaml
+  - ./windmill.yaml

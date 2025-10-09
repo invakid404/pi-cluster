@@ -1,0 +1,47 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/common-4.3.0/charts/library/common/values.schema.json
+controllers:
+  main:
+    containers:
+      main:
+        image:
+          repository: ghcr.io/autobrr/qui
+          tag: v1.3.0@sha256:6e2500b2c393fbff7c577d2fa410551a4a1af883e32a3545dd124d7672bf7ca9
+        envFrom:
+          - secretRef:
+              name: qui
+
+defaultPodOptions:
+  annotations:
+    reloader.stakater.com/auto: "true"
+
+service:
+  main:
+    controller: main
+    ports:
+      http:
+        port: 7476
+
+persistence:
+  config:
+    enabled: true
+    existingClaim: qui-data
+    globalMounts:
+      - path: /config
+
+ingress:
+  main:
+    enabled: true
+    className: tailscale
+    annotations:
+      tailscale.com/funnel: "true"
+      tailscale.com/hostname: qui
+    hosts:
+      - host: qui.${TAILSCALE_DOMAIN}
+        paths:
+          - path: /
+            service:
+              identifier: main
+              port: http
+    tls:
+      - hosts:
+          - qui.${TAILSCALE_DOMAIN}
