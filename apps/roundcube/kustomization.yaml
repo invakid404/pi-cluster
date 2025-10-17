@@ -8,5 +8,9 @@ configMapGenerator:
     namespace: apps
     files:
       - values.yaml
+  - name: roundcube-config
+    namespace: apps
+    files:
+      - ./config/plugins.php
 configurations:
   - kustomizeconfig.yaml

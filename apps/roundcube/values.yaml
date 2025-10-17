@@ -34,6 +34,22 @@ controllers:
             value: ${POSTGRES_PASSWORD}
           - name: INIT_POSTGRES_DBNAME
             value: *db-name
+      02-install-identity-switcher:
+        image:
+          repository: busybox
+          tag: latest@sha256:2f590fc602ce325cbff2ccfc39499014d039546dc400ef8bbf5c6ffb860632e7
+        command:
+          - "/bin/sh"
+          - -c
+        args:
+          - |
+            cd /var/www/html/plugins
+            export IDENTITY_SWITCH_VERSION=2.0.8
+            busybox wget -qO- "https://github.com/toteph42/identity_switch/archive/refs/tags/$${IDENTITY_SWITCH_VERSION}.zip" | busybox unzip -d . -
+            mv "identity_switch-$${IDENTITY_SWITCH_VERSION}" identity_switch
+            mv identity_switch/config.inc.php.dist identity_switch/config.inc.php
+            cp /config/* /var/roundcube/config/
+            chown -R www-data:www-data identity_switch/
 
 defaultPodOptions:
   annotations:
@@ -47,11 +63,27 @@ service:
         port: 8000
 
 persistence:
+  plugins:
+    enabled: true
+    type: emptyDir
+    globalMounts:
+      - path: /var/www/html/plugins
+
+  extraconfig:
+    enabled: true
+    type: emptyDir
+    globalMounts:
+      - path: /var/roundcube/config
   tmp:
     enabled: true
     type: emptyDir
     globalMounts:
       - path: /tmp/roundcube-temp
+
+  config:
+    enabled: true
+    type: configMap
+    name: roundcube-config
 
 ingress:
   main:

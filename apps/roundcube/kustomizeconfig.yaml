@@ -1,6 +1,12 @@
 nameReference:
   - kind: ConfigMap
     version: v1
+    name: roundcube-values
     fieldSpecs:
       - path: spec/valuesFrom/name
         kind: HelmRelease
+  - kind: ConfigMap
+    version: v1
+    fieldSpecs:
+      - path: data/persistence/config/name
+        kind: ConfigMap
