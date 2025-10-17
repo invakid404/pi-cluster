@@ -28,3 +28,4 @@ resources:
   - ./verdaccio.yaml
   - ./webhook.yaml
   - ./windmill.yaml
+  - ./roundcube.yaml

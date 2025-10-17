@@ -1,0 +1,71 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/common-4.3.0/charts/library/common/values.schema.json
+controllers:
+  main:
+    containers:
+      main:
+        image:
+          repository: roundcube/roundcubemail
+          tag: 1.6.11-apache-nonroot@sha256:fcb4cd1f6111160596ca5433ea8178645b886fecabeb30d900aeebb4d7bde0c2
+        env:
+          ROUNDCUBEMAIL_DB_TYPE: pgsql
+          ROUNDCUBEMAIL_DB_HOST: &db-host postgres.core.svc.cluster.local
+          ROUNDCUBEMAIL_DB_PORT: "5432"
+          ROUNDCUBEMAIL_DB_USER: &db-user postgres
+          ROUNDCUBEMAIL_DB_PASSWORD: ${POSTGRES_PASSWORD}
+          ROUNDCUBEMAIL_DB_NAME: &db-name roundcube
+        envFrom:
+          - secretRef:
+              name: roundcube
+    initContainers:
+      01-init-db:
+        image:
+          repository: ghcr.io/onedr0p/postgres-init
+          tag: 16.1@sha256:dda75857689116d9c233ec0978cb905da0f952618dfbe1b8731aa1071044eaf0
+        env:
+          - name: INIT_POSTGRES_HOST
+            value: *db-host
+          - name: INIT_POSTGRES_SUPER_USER
+            value: *db-user
+          - name: INIT_POSTGRES_SUPER_PASS
+            value: ${POSTGRES_PASSWORD}
+          - name: INIT_POSTGRES_USER
+            value: *db-user
+          - name: INIT_POSTGRES_PASS
+            value: ${POSTGRES_PASSWORD}
+          - name: INIT_POSTGRES_DBNAME
+            value: *db-name
+
+defaultPodOptions:
+  annotations:
+    reloader.stakater.com/auto: "true"
+
+service:
+  main:
+    controller: main
+    ports:
+      http:
+        port: 8000
+
+persistence:
+  tmp:
+    enabled: true
+    type: emptyDir
+    globalMounts:
+      - path: /tmp/roundcube-temp
+
+ingress:
+  main:
+    enabled: true
+    className: tailscale
+    annotations:
+      tailscale.com/hostname: mail
+    hosts:
+      - host: mail.${TAILSCALE_DOMAIN}
+        paths:
+          - path: /
+            service:
+              identifier: main
+              port: http
+    tls:
+      - hosts:
+          - mail.${TAILSCALE_DOMAIN}
