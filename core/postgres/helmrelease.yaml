@@ -19,6 +19,11 @@ spec:
     remediation:
       retries: 10
   values:
+    image:
+      registry: docker.io
+      repository: bitnamilegacy/postgresql
+      tag: 16.1.0
+
     fullnameOverride: postgres
 
     global:
