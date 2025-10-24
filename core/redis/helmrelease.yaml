@@ -21,6 +21,10 @@ spec:
 
   values:
     architecture: standalone
+    image:
+      registry: docker.io
+      repository: bitnamilegacy/redis
+      tag: 7.2.5
 
     auth:
       enabled: false
