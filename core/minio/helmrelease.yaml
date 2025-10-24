@@ -20,6 +20,11 @@ spec:
       retries: 10
 
   values:
+    image:
+      registry: docker.io
+      repository: bitnamilegacy/minio
+      tag: 2023.12.23
+
     auth:
       existingSecret: minio-creds
 
