@@ -4,9 +4,9 @@ resources:
   - ./secret.yaml
   - ./helmrelease.yaml
 configMapGenerator:
-  - name: roundcube-config
+  - name: roundcube-identity-switch-config
     namespace: apps
     files:
-      - ./config/plugins.php
+      - ./config/identity_switch_config.php
 generatorOptions:
   disableNameSuffixHash: true

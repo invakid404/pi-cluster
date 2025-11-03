@@ -73,7 +73,7 @@ spec:
                 export IDENTITY_SWITCH_VERSION=2.0.8
                 busybox wget -qO- "https://github.com/toteph42/identity_switch/archive/refs/tags/$${IDENTITY_SWITCH_VERSION}.zip" | busybox unzip -d . -
                 mv "identity_switch-$${IDENTITY_SWITCH_VERSION}" identity_switch
-                cp /config/* /var/roundcube/config/
+                cp /config/identity_switch_config.php /var/www/html/plugins/identity_switch/config.inc.php
           03-fix-permissions:
             image:
               repository: busybox
@@ -104,11 +104,6 @@ spec:
         globalMounts:
           - path: /var/www/html/plugins
 
-      extraconfig:
-        enabled: true
-        type: emptyDir
-        globalMounts:
-          - path: /var/roundcube/config
       tmp:
         enabled: true
         type: emptyDir
@@ -118,7 +113,9 @@ spec:
       config:
         enabled: true
         type: configMap
-        name: roundcube-config
+        name: roundcube-identity-switch-config
+        globalMounts:
+          - path: /config
 
     ingress:
       main:
