@@ -73,7 +73,6 @@ spec:
                 export IDENTITY_SWITCH_VERSION=2.0.8
                 busybox wget -qO- "https://github.com/toteph42/identity_switch/archive/refs/tags/$${IDENTITY_SWITCH_VERSION}.zip" | busybox unzip -d . -
                 mv "identity_switch-$${IDENTITY_SWITCH_VERSION}" identity_switch
-                mv identity_switch/config.inc.php.dist identity_switch/config.inc.php
                 cp /config/* /var/roundcube/config/
           03-fix-permissions:
             image:
