@@ -81,7 +81,7 @@ spec:
 
     defaultPodOptions:
       nodeSelector:
-        iscsi: "true"
+        metallb-l2: "true"
       dnsConfig:
         options:
           - name: ndots

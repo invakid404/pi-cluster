@@ -21,7 +21,7 @@ defaultPodOptions:
   annotations:
     reloader.stakater.com/auto: "true"
   nodeSelector:
-    iscsi: "true"
+    metallb-l2: "true"
 
 service:
   main:
