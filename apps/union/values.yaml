@@ -1,12 +1,5 @@
 workerd:
-  workers:
-    - name: raycast-relay
-      image: ghcr.io/invakid404/raycast-relay:1.0.0
-      env:
-        RAYCAST_BEARER_TOKEN: ${RAYCAST_TOKEN}
-        API_KEY: ${OPENAI_KEY}
-      durableObjects:
-        enabled: false
+  workers: []
 
 cloudflared:
   enabled: false

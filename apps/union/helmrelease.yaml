@@ -25,15 +25,3 @@ spec:
   valuesFrom:
     - kind: ConfigMap
       name: union-values
-  postRenderers:
-    - kustomize:
-        patchesStrategicMerge:
-          - kind: Deployment
-            apiVersion: apps/v1
-            metadata:
-              name: workerd-raycast-relay
-            spec:
-              template:
-                spec:
-                  imagePullSecrets:
-                    - name: docker-config
