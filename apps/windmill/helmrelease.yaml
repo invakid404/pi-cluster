@@ -97,27 +97,31 @@ spec:
 
   postRenderers:
     - kustomize:
-        patchesStrategicMerge:
-          - kind: Deployment
-            apiVersion: apps/v1
-            metadata:
+        patches:
+          - target:
+              kind: Deployment
               name: windmill-app
-            spec:
-              template:
-                spec:
-                  initContainers:
-                    - name: init-db
-                      image: ghcr.io/onedr0p/postgres-init:16.1@sha256:dda75857689116d9c233ec0978cb905da0f952618dfbe1b8731aa1071044eaf0
-                      env:
-                        - name: INIT_POSTGRES_HOST
-                          value: postgres.core.svc.cluster.local
-                        - name: INIT_POSTGRES_SUPER_USER
-                          value: postgres
-                        - name: INIT_POSTGRES_SUPER_PASS
-                          value: ${POSTGRES_PASSWORD}
-                        - name: INIT_POSTGRES_USER
-                          value: postgres
-                        - name: INIT_POSTGRES_PASS
-                          value: ${POSTGRES_PASSWORD}
-                        - name: INIT_POSTGRES_DBNAME
-                          value: *app
+            patch: |
+              apiVersion: apps/v1
+              kind: Deployment
+              metadata:
+                name: windmill-app
+              spec:
+                template:
+                  spec:
+                    initContainers:
+                      - name: init-db
+                        image: ghcr.io/onedr0p/postgres-init:16.1@sha256:dda75857689116d9c233ec0978cb905da0f952618dfbe1b8731aa1071044eaf0
+                        env:
+                          - name: INIT_POSTGRES_HOST
+                            value: postgres.core.svc.cluster.local
+                          - name: INIT_POSTGRES_SUPER_USER
+                            value: postgres
+                          - name: INIT_POSTGRES_SUPER_PASS
+                            value: ${POSTGRES_PASSWORD}
+                          - name: INIT_POSTGRES_USER
+                            value: postgres
+                          - name: INIT_POSTGRES_PASS
+                            value: ${POSTGRES_PASSWORD}
+                          - name: INIT_POSTGRES_DBNAME
+                            value: windmill
