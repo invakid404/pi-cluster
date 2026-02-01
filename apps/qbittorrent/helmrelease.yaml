@@ -102,13 +102,6 @@ spec:
         globalMounts:
           - path: /mnt/torrents
 
-      incomplete:
-        enabled: true
-        type: hostPath
-        hostPath: /mnt/media/incomplete
-        globalMounts:
-          - path: /mnt/incomplete
-
       configfiles:
         enabled: true
         type: configMap
@@ -118,7 +111,7 @@ spec:
       annotations:
         reloader.stakater.com/auto: "true"
       nodeSelector:
-        kubernetes.io/hostname: styx
+        metallb-l2: "true"
       securityContext:
         runAsUser: ${SQUASH_UID}
         runAsGroup: ${SQUASH_UID}

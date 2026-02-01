@@ -8,4 +8,4 @@ spec:
     - main
   nodeSelectors:
   - matchLabels:
-      kubernetes.io/hostname: hydra
+      metallb-l2: "true"
