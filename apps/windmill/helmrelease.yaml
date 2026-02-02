@@ -75,7 +75,7 @@ spec:
           replicas: 1
           extraEnv:
             - name: INIT_SCRIPT
-              value: "apt update -y && apt install -y libreoffice pandoc texlive-xetex texlive-fonts-recommended"
+              value: "apt update -y && apt install -y libreoffice pandoc texlive-xetex texlive-fonts-recommended librsvg2-bin"
             - name: WORKER_TAGS
               value: libreoffice
 
