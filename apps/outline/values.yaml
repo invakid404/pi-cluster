@@ -6,20 +6,7 @@ controllers:
       main:
         image:
           repository: outlinewiki/outline
-          tag: 0.75.2@sha256:830923e3e7b4b3f2969db56a6033a03947f9a191d35b60a1fd80ed130ade5a1d
-        envFrom:
-          - secret: outline
-    initContainers:
-      01-init-db:
-        image:
-          repository: outlinewiki/outline
-          tag: 0.75.2@sha256:830923e3e7b4b3f2969db56a6033a03947f9a191d35b60a1fd80ed130ade5a1d
-        command:
-          - "/bin/sh"
-          - -c
-        args:
-          - |
-            yarn db:create --env=production-ssl-disabled || true
+          tag: 1.4.0
         envFrom:
           - secret: outline
 
