@@ -1,6 +1,6 @@
 #!/bin/bash
 # Push Claude Code stats to Home Assistant
-# Run this via cron on the machine where Claude Code runs
+# Parses session JSONL files directly for accurate stats
 #
 # Setup:
 #   1. Create a long-lived access token in HA (Profile -> Security -> Long-Lived Access Tokens)
@@ -9,48 +9,105 @@
 
 set -euo pipefail
 
-# Configuration - override via environment or edit here
+# Configuration
 HASS_URL="${HASS_URL:-https://hass.qilin-qilin.ts.net}"
 HASS_TOKEN="${HASS_TOKEN:-}"
-STATS_FILE="${HOME}/.claude/stats-cache.json"
+CLAUDE_DIR="${HOME}/.claude"
+PROJECTS_DIR="${CLAUDE_DIR}/projects"
 
 if [[ -z "$HASS_TOKEN" ]]; then
   echo "Error: HASS_TOKEN not set" >&2
   exit 1
 fi
 
-if [[ ! -f "$STATS_FILE" ]]; then
-  echo "Error: Stats file not found: $STATS_FILE" >&2
+if [[ ! -d "$PROJECTS_DIR" ]]; then
+  echo "Error: Claude projects directory not found: $PROJECTS_DIR" >&2
   exit 1
 fi
 
-# Read the stats file
-stats=$(cat "$STATS_FILE")
-
-# Get today's date
 today=$(date +%Y-%m-%d)
 
-# Extract today's activity (or zeros if not present)
-daily_messages=$(echo "$stats" | jq -r --arg d "$today" '.dailyActivity[] | select(.date == $d) | .messageCount // 0')
-daily_sessions=$(echo "$stats" | jq -r --arg d "$today" '.dailyActivity[] | select(.date == $d) | .sessionCount // 0')
-daily_tool_calls=$(echo "$stats" | jq -r --arg d "$today" '.dailyActivity[] | select(.date == $d) | .toolCallCount // 0')
-daily_tokens=$(echo "$stats" | jq -r --arg d "$today" '.dailyModelTokens[] | select(.date == $d) | [.tokensByModel[]] | add // 0')
+# Parse all JSONL files and compute stats
+# This gives us accurate real-time data instead of relying on the cache
+compute_stats() {
+  find "$PROJECTS_DIR" -name "*.jsonl" -type f 2>/dev/null | while read -r jsonl; do
+    cat "$jsonl"
+  done | jq -s --arg today "$today" '
+    # Filter to assistant messages with usage data
+    [.[] | select(.type == "assistant" and .message.usage != null)] |
+    
+    # Group by date (from timestamp)
+    group_by(.timestamp | split("T")[0]) |
+    
+    # Compute per-day and total stats
+    {
+      daily: (
+        [.[] | {
+          date: (.[0].timestamp | split("T")[0]),
+          messages: length,
+          input_tokens: ([.[].message.usage.input_tokens // 0] | add),
+          output_tokens: ([.[].message.usage.output_tokens // 0] | add),
+          cache_read: ([.[].message.usage.cache_read_input_tokens // 0] | add),
+          cache_creation: ([.[].message.usage.cache_creation_input_tokens // 0] | add)
+        }]
+      ),
+      totals: {
+        messages: ([.[][] | select(.message.usage != null)] | length),
+        input_tokens: ([.[][][].message.usage.input_tokens // 0] | add),
+        output_tokens: ([.[][][].message.usage.output_tokens // 0] | add),
+        cache_read: ([.[][][].message.usage.cache_read_input_tokens // 0] | add),
+        cache_creation: ([.[][][].message.usage.cache_creation_input_tokens // 0] | add)
+      }
+    } |
+    
+    # Add today specific stats
+    . + {
+      today: (
+        .daily | map(select(.date == $today)) | .[0] // {
+          date: $today,
+          messages: 0,
+          input_tokens: 0,
+          output_tokens: 0,
+          cache_read: 0,
+          cache_creation: 0
+        }
+      )
+    }
+  '
+}
 
-# Default to 0 if empty
-daily_messages=${daily_messages:-0}
-daily_sessions=${daily_sessions:-0}
-daily_tool_calls=${daily_tool_calls:-0}
-daily_tokens=${daily_tokens:-0}
+# Simpler approach: just count from JONLs
+stats=$(find "$PROJECTS_DIR" -name "*.jsonl" -type f -print0 2>/dev/null | \
+  xargs -0 cat 2>/dev/null | \
+  jq -s --arg today "$today" '
+    [.[] | select(.message.usage != null)] |
+    {
+      today_messages: ([.[] | select(.timestamp | startswith($today))] | length),
+      today_input: ([.[] | select(.timestamp | startswith($today)) | .message.usage.input_tokens // 0] | add // 0),
+      today_output: ([.[] | select(.timestamp | startswith($today)) | .message.usage.output_tokens // 0] | add // 0),
+      today_cache_read: ([.[] | select(.timestamp | startswith($today)) | .message.usage.cache_read_input_tokens // 0] | add // 0),
+      today_cache_creation: ([.[] | select(.timestamp | startswith($today)) | .message.usage.cache_creation_input_tokens // 0] | add // 0),
+      total_messages: length,
+      total_input: ([.[].message.usage.input_tokens // 0] | add // 0),
+      total_output: ([.[].message.usage.output_tokens // 0] | add // 0),
+      total_cache_read: ([.[].message.usage.cache_read_input_tokens // 0] | add // 0),
+      total_cache_creation: ([.[].message.usage.cache_creation_input_tokens // 0] | add // 0)
+    }
+  ')
 
-# Extract cumulative stats
-total_sessions=$(echo "$stats" | jq -r '.totalSessions // 0')
-total_messages=$(echo "$stats" | jq -r '.totalMessages // 0')
+# Extract values
+today_messages=$(echo "$stats" | jq -r '.today_messages // 0')
+today_input=$(echo "$stats" | jq -r '.today_input // 0')
+today_output=$(echo "$stats" | jq -r '.today_output // 0')
+today_cache_read=$(echo "$stats" | jq -r '.today_cache_read // 0')
+today_cache_creation=$(echo "$stats" | jq -r '.today_cache_creation // 0')
+today_tokens=$((today_input + today_output))
 
-# Extract model usage totals
-input_tokens=$(echo "$stats" | jq -r '[.modelUsage[].inputTokens] | add // 0')
-output_tokens=$(echo "$stats" | jq -r '[.modelUsage[].outputTokens] | add // 0')
-cache_read_tokens=$(echo "$stats" | jq -r '[.modelUsage[].cacheReadInputTokens] | add // 0')
-cache_creation_tokens=$(echo "$stats" | jq -r '[.modelUsage[].cacheCreationInputTokens] | add // 0')
+total_messages=$(echo "$stats" | jq -r '.total_messages // 0')
+total_input=$(echo "$stats" | jq -r '.total_input // 0')
+total_output=$(echo "$stats" | jq -r '.total_output // 0')
+total_cache_read=$(echo "$stats" | jq -r '.total_cache_read // 0')
+total_cache_creation=$(echo "$stats" | jq -r '.total_cache_creation // 0')
 
 # Function to update HA sensor
 update_sensor() {
@@ -72,18 +129,17 @@ update_sensor() {
     -d "{\"state\": \"$state\", \"attributes\": $attributes}" > /dev/null
 }
 
-# Update all sensors
-update_sensor "claude_daily_messages" "$daily_messages" "Claude Daily Messages" "messages" "mdi:message-text"
-update_sensor "claude_daily_sessions" "$daily_sessions" "Claude Daily Sessions" "sessions" "mdi:application"
-update_sensor "claude_daily_tool_calls" "$daily_tool_calls" "Claude Daily Tool Calls" "calls" "mdi:wrench"
-update_sensor "claude_daily_tokens" "$daily_tokens" "Claude Daily Tokens" "tokens" "mdi:counter"
+# Update daily sensors
+update_sensor "claude_daily_messages" "$today_messages" "Claude Daily Messages" "messages" "mdi:message-text"
+update_sensor "claude_daily_tokens" "$today_tokens" "Claude Daily Tokens" "tokens" "mdi:counter"
+update_sensor "claude_daily_input_tokens" "$today_input" "Claude Daily Input Tokens" "tokens" "mdi:arrow-right"
+update_sensor "claude_daily_output_tokens" "$today_output" "Claude Daily Output Tokens" "tokens" "mdi:arrow-left"
 
-update_sensor "claude_total_sessions" "$total_sessions" "Claude Total Sessions" "sessions" "mdi:application"
+# Update total sensors
 update_sensor "claude_total_messages" "$total_messages" "Claude Total Messages" "messages" "mdi:message-text"
+update_sensor "claude_total_input_tokens" "$total_input" "Claude Total Input Tokens" "tokens" "mdi:arrow-right"
+update_sensor "claude_total_output_tokens" "$total_output" "Claude Total Output Tokens" "tokens" "mdi:arrow-left"
+update_sensor "claude_total_cache_read" "$total_cache_read" "Claude Cache Read Tokens" "tokens" "mdi:cached"
+update_sensor "claude_total_cache_creation" "$total_cache_creation" "Claude Cache Creation Tokens" "tokens" "mdi:database-plus"
 
-update_sensor "claude_input_tokens" "$input_tokens" "Claude Input Tokens" "tokens" "mdi:arrow-right"
-update_sensor "claude_output_tokens" "$output_tokens" "Claude Output Tokens" "tokens" "mdi:arrow-left"
-update_sensor "claude_cache_read_tokens" "$cache_read_tokens" "Claude Cache Read Tokens" "tokens" "mdi:cached"
-update_sensor "claude_cache_creation_tokens" "$cache_creation_tokens" "Claude Cache Creation Tokens" "tokens" "mdi:database-plus"
-
-echo "Stats pushed to Home Assistant at $(date)"
+echo "[$(date)] Stats pushed: today=${today_messages} msgs, ${today_tokens} tokens | total=${total_messages} msgs"
