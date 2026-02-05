@@ -32,23 +32,14 @@ spec:
         containers:
           main:
             image:
-              repository: ghcr.io/onedr0p/qbittorrent
-              tag: 5.0.4@sha256:9d9c2384f94b12831c5650afc8d25f313ecb09cfd8cb434dda6da9fb39cbccfe
+              repository: lscr.io/linuxserver/qbittorrent
+              tag: 5.1.4
             env:
               TZ: ${TIMEZONE}
-              UMASK: "022"
-              QBITTORRENT__PORT: &port 8080
-              QBITTORRENT__BT_PORT: &bt-port 50413
-        initContainers:
-          01-copy-config:
-            image:
-              repository: busybox
-              tag: 1.36.1@sha256:6d9ac9237a84afe1516540f40a0fafdc86859b2141954b4d643af7066d598b74
-            command:
-              - "/bin/sh"
-              - -c
-            args:
-              - cp /configfiles/* /config/qBittorrent/
+              PUID: ${SQUASH_UID}
+              PGID: ${SQUASH_UID}
+              WEBUI_PORT: &port 8080
+              TORRENTING_PORT: &bt-port 50413
 
     service:
       main:
@@ -102,20 +93,11 @@ spec:
         globalMounts:
           - path: /mnt/torrents
 
-      configfiles:
-        enabled: true
-        type: configMap
-        name: qbittorrent-config
-
     defaultPodOptions:
       annotations:
         reloader.stakater.com/auto: "true"
       nodeSelector:
         metallb-l2: "true"
-      securityContext:
-        runAsUser: ${SQUASH_UID}
-        runAsGroup: ${SQUASH_UID}
-        fsGroup: ${SQUASH_UID}
       dnsConfig:
         options:
           - name: ndots
