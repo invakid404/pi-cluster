@@ -29,11 +29,14 @@ spec:
       main:
         containers:
           main:
-            env:
-              PLEX_ADVERTISE_URL: https://${PLEX_IP}:32400,https://plex.${TAILSCALE_DOMAIN}:443
             image:
-              repository: ghcr.io/home-operations/plex
-              tag: 1.42.1.10060@sha256:92d48d97cc896e0b771c64f715fc68fed931a8d80506b503d84cfdf1d81bff92
+              repository: lscr.io/linuxserver/plex
+              tag: 1.42.2
+            env:
+              TZ: ${TIMEZONE}
+              PUID: ${SQUASH_UID}
+              PGID: ${SQUASH_UID}
+              PLEX_ADVERTISE_URL: https://${PLEX_IP}:32400,https://plex.${TAILSCALE_DOMAIN}:443
 
     service:
       main:
