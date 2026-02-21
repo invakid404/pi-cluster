@@ -5,7 +5,7 @@ controllers:
       main:
         image:
           repository: ghcr.io/autobrr/qui
-          tag: v1.13.1@sha256:ab5626ffb9177dd90c33113e5a1b7a8677daee2306de8f5cc35f10e85ea7a72b
+          tag: v1.14.0@sha256:7455e0b2d6d09b5a638d55eb43c4a7a9add16ad5162c2c071b664a8a8a726a4f
         envFrom:
           - secretRef:
               name: qui
