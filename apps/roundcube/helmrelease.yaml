@@ -73,6 +73,9 @@ spec:
                 # Now run initdb with fixed autoloader (idempotent)
                 php bin/initdb.sh --dir=SQL --update 2>/dev/null || true
                 
+                # Create identity_switch table if missing (plugin SQL uses IF NOT EXISTS)
+                php bin/initdb.sh --dir=plugins/identity_switch/SQL --package=identity_switch 2>/dev/null || true
+                
                 # Copy plugin config
                 cp /config/identity_switch_config.php plugins/identity_switch/config.inc.php 2>/dev/null || true
                 
