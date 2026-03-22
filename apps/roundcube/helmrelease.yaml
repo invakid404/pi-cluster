@@ -87,12 +87,15 @@ spec:
               - -c
               - |
                 export PGPASSWORD="${POSTGRES_PASSWORD}"
-                if psql -h "${DB_HOST}" -p 5432 -U "${DB_USER}" -d "${DB_NAME}" -c "SELECT 1 FROM users LIMIT 1" >/dev/null 2>&1; then
+                export PGHOST="${DB_HOST}"
+                export PGPORT="5432"
+                export PGUSER="${DB_USER}"
+                export PGDATABASE="${DB_NAME}"
+                if psql -c "SELECT 1 FROM users LIMIT 1" >/dev/null 2>&1; then
                   echo "Roundcube core schema already exists, skipping."
                 else
                   echo "Roundcube core schema missing, applying..."
-                  psql -h "${DB_HOST}" -p 5432 -U "${DB_USER}" -d "${DB_NAME}" < /init-sql/postgres.initial.sql
-                  echo "Core schema created."
+                  psql -f /init-sql/postgres.initial.sql && echo "Core schema created." || echo "Schema init FAILED"
                 fi
             env:
               - name: DB_HOST
