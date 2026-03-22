@@ -44,25 +44,40 @@ spec:
             envFrom:
               - secretRef:
                   name: roundcube
-            lifecycle:
-              postStart:
-                exec:
-                  command:
-                    - /bin/sh
-                    - -c
-                    - |
-                      # Wait for entrypoint to finish composer install
-                      for i in $(seq 1 90); do
-                        [ -d /var/www/html/plugins/identity_switch ] && break
-                        sleep 2
-                      done
-                      # Fix autoloader (entrypoint doesn't register transitive deps properly)
-                      cd /var/www/html
-                      composer dump-autoload --optimize 2>/dev/null
-                      # Re-run initdb now that autoloader works (idempotent, skips existing tables)
-                      php bin/initdb.sh --dir=SQL --update 2>/dev/null || true
-                      # Copy plugin config
-                      cp /config/identity_switch_config.php plugins/identity_switch/config.inc.php 2>/dev/null || true
+            command: ["/bin/bash"]
+            args:
+              - -c
+              - |
+                # Run the original entrypoint, which will:
+                # 1. Composer install plugins (identity_switch + symfony/filesystem)
+                # 2. Try initdb (will fail because autoloader is broken)
+                # 3. Start apache anyway
+                # We patch step 2 by wrapping the entrypoint:
+                
+                # Source the entrypoint but intercept before initdb
+                # First, let composer do its thing by running the entrypoint normally
+                # It will error on initdb but apache will still start
+                /docker-entrypoint.sh apache2-foreground &
+                ENTRY_PID=$!
+                
+                # Wait for composer to finish installing the plugin
+                for i in $(seq 1 90); do
+                  [ -d /var/www/html/plugins/identity_switch ] && break
+                  sleep 2
+                done
+                
+                # Fix the autoloader
+                cd /var/www/html
+                composer dump-autoload --optimize 2>/dev/null || true
+                
+                # Now run initdb with fixed autoloader (idempotent)
+                php bin/initdb.sh --dir=SQL --update 2>/dev/null || true
+                
+                # Copy plugin config
+                cp /config/identity_switch_config.php plugins/identity_switch/config.inc.php 2>/dev/null || true
+                
+                # Wait for apache
+                wait $ENTRY_PID
         initContainers:
           01-init-db:
             image:
