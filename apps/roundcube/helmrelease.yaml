@@ -82,15 +82,15 @@ spec:
             image:
               repository: roundcube/roundcubemail
               tag: 1.6.11-apache-nonroot@sha256:fcb4cd1f6111160596ca5433ea8178645b886fecabeb30d900aeebb4d7bde0c2
-            workingDir: /var/www/html
             command: ["/bin/sh"]
             args:
               - -c
               - |
                 DSN="pgsql://${ROUNDCUBEMAIL_DB_USER}:${ROUNDCUBEMAIL_DB_PASSWORD}@${ROUNDCUBEMAIL_DB_HOST}:${ROUNDCUBEMAIL_DB_PORT}/${ROUNDCUBEMAIL_DB_NAME}"
-                mkdir -p config
-                echo "<?php \$config['db_dsnw'] = '${DSN}';" > config/config.inc.php
-                php bin/initdb.sh --dir=SQL 2>&1 || echo "initdb finished (may already be initialized)"
+                mkdir -p /var/www/html/config
+                echo "<?php \$config['db_dsnw'] = '${DSN}';" > /var/www/html/config/config.inc.php
+                ls -la /var/www/html/bin/initdb.sh
+                cd /var/www/html && php /var/www/html/bin/initdb.sh --dir=/var/www/html/SQL 2>&1 || echo "initdb finished (may already be initialized)"
             env:
               ROUNDCUBEMAIL_DB_HOST: *db-host
               ROUNDCUBEMAIL_DB_PORT: "5432"
