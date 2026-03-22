@@ -80,12 +80,13 @@ spec:
                 value: *db-name
           02-init-roundcube-schema:
             image:
-              repository: bitnami/postgresql
-              tag: "16"
-            command: ["/bin/bash"]
+              repository: alpine
+              tag: "3.21"
+            command: ["/bin/sh"]
             args:
               - -c
               - |
+                apk add --no-cache postgresql16-client >/dev/null 2>&1
                 PGPASSWORD="${POSTGRES_PASSWORD}" psql -h "${DB_HOST}" -p 5432 -U "${DB_USER}" -d "${DB_NAME}" -c "SELECT 1 FROM users LIMIT 1" >/dev/null 2>&1 && {
                   echo "Roundcube core schema already exists, skipping."
                   exit 0
