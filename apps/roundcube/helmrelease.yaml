@@ -40,7 +40,7 @@ spec:
               ROUNDCUBEMAIL_DB_PASSWORD: ${POSTGRES_PASSWORD}
               ROUNDCUBEMAIL_DB_NAME: &db-name roundcube
               # Install identity_switch via composer on startup (handles SQL migrations)
-              ROUNDCUBEMAIL_COMPOSER_PLUGINS: "toteph42/identity_switch"
+              ROUNDCUBEMAIL_COMPOSER_PLUGINS: "toteph42/identity_switch,symfony/filesystem"
               ROUNDCUBEMAIL_PLUGINS: "archive,zipdownload,identity_switch"
             envFrom:
               - secretRef:
