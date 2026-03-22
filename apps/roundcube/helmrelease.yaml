@@ -39,7 +39,6 @@ spec:
               ROUNDCUBEMAIL_DB_USER: &db-user postgres
               ROUNDCUBEMAIL_DB_PASSWORD: ${POSTGRES_PASSWORD}
               ROUNDCUBEMAIL_DB_NAME: &db-name roundcube
-              # Install identity_switch via composer on startup (handles SQL migrations)
               ROUNDCUBEMAIL_COMPOSER_PLUGINS: "toteph42/identity_switch,symfony/filesystem"
               ROUNDCUBEMAIL_PLUGINS: "archive,zipdownload,identity_switch"
             envFrom:
@@ -52,14 +51,18 @@ spec:
                     - /bin/sh
                     - -c
                     - |
-                      # Wait for composer to install the plugin, then copy config
-                      for i in $(seq 1 60); do
-                        if [ -d /var/www/html/plugins/identity_switch ]; then
-                          cp /config/identity_switch_config.php /var/www/html/plugins/identity_switch/config.inc.php
-                          break
-                        fi
+                      # Wait for entrypoint to finish composer install
+                      for i in $(seq 1 90); do
+                        [ -d /var/www/html/plugins/identity_switch ] && break
                         sleep 2
                       done
+                      # Fix autoloader (entrypoint doesn't register transitive deps properly)
+                      cd /var/www/html
+                      composer dump-autoload --optimize 2>/dev/null
+                      # Re-run initdb now that autoloader works (idempotent, skips existing tables)
+                      php bin/initdb.sh --dir=SQL --update 2>/dev/null || true
+                      # Copy plugin config
+                      cp /config/identity_switch_config.php plugins/identity_switch/config.inc.php 2>/dev/null || true
         initContainers:
           01-init-db:
             image:
@@ -78,31 +81,6 @@ spec:
                 value: ${POSTGRES_PASSWORD}
               - name: INIT_POSTGRES_DBNAME
                 value: *db-name
-          02-init-roundcube-schema:
-            image:
-              repository: alpine
-              tag: "3.21"
-            command: ["/bin/sh"]
-            args:
-              - -c
-              - |
-                apk add --no-cache postgresql16-client >/dev/null 2>&1
-                PGPASSWORD="${POSTGRES_PASSWORD}" psql -h "${DB_HOST}" -p 5432 -U "${DB_USER}" -d "${DB_NAME}" -c "SELECT 1 FROM users LIMIT 1" >/dev/null 2>&1 && {
-                  echo "Roundcube core schema already exists, skipping."
-                  exit 0
-                }
-                echo "Roundcube core schema missing, applying..."
-                PGPASSWORD="${POSTGRES_PASSWORD}" psql -h "${DB_HOST}" -p 5432 -U "${DB_USER}" -d "${DB_NAME}" -f /init-sql/postgres.initial.sql
-                echo "Core schema created."
-            env:
-              - name: DB_HOST
-                value: *db-host
-              - name: DB_USER
-                value: *db-user
-              - name: DB_NAME
-                value: *db-name
-              - name: POSTGRES_PASSWORD
-                value: ${POSTGRES_PASSWORD}
 
     defaultPodOptions:
       annotations:
@@ -128,15 +106,6 @@ spec:
         name: roundcube-identity-switch-config
         globalMounts:
           - path: /config
-
-      init-sql:
-        enabled: true
-        type: configMap
-        name: roundcube-init-sql
-        advancedMounts:
-          main:
-            02-init-roundcube-schema:
-              - path: /init-sql
 
     ingress:
       main:
