@@ -82,24 +82,15 @@ spec:
             image:
               repository: roundcube/roundcubemail
               tag: 1.6.11-apache-nonroot@sha256:fcb4cd1f6111160596ca5433ea8178645b886fecabeb30d900aeebb4d7bde0c2
-            command:
-              - /bin/sh
-              - -c
+            workingDir: /var/www/html
+            command: ["/bin/sh"]
             args:
+              - -c
               - |
-                # Bootstrap roundcube core schema before main entrypoint.
-                # The main entrypoint runs composer plugin install BEFORE initdb,
-                # so plugins with SQL migrations (identity_switch) fail on fresh DBs.
-                cd /var/www/html
-
-                # Write minimal config for initdb to connect to postgres
-                cat > config/config.inc.php <<'EOF'
-                <?php
-                $config['db_dsnw'] = 'pgsql://' . getenv('ROUNDCUBEMAIL_DB_USER') . ':' . getenv('ROUNDCUBEMAIL_DB_PASSWORD') . '@' . getenv('ROUNDCUBEMAIL_DB_HOST') . ':' . getenv('ROUNDCUBEMAIL_DB_PORT') . '/' . getenv('ROUNDCUBEMAIL_DB_NAME');
-                EOF
-
-                # Run roundcube's own initdb (idempotent — skips if tables exist)
-                php bin/initdb.sh --dir=SQL || echo "initdb completed (may have already been initialized)"
+                DSN="pgsql://${ROUNDCUBEMAIL_DB_USER}:${ROUNDCUBEMAIL_DB_PASSWORD}@${ROUNDCUBEMAIL_DB_HOST}:${ROUNDCUBEMAIL_DB_PORT}/${ROUNDCUBEMAIL_DB_NAME}"
+                mkdir -p config
+                echo "<?php \$config['db_dsnw'] = '${DSN}';" > config/config.inc.php
+                php bin/initdb.sh --dir=SQL 2>&1 || echo "initdb finished (may already be initialized)"
             env:
               ROUNDCUBEMAIL_DB_HOST: *db-host
               ROUNDCUBEMAIL_DB_PORT: "5432"
