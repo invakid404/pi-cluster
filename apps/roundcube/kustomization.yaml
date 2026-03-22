@@ -8,5 +8,9 @@ configMapGenerator:
     namespace: apps
     files:
       - ./config/identity_switch_config.php
+  - name: roundcube-init-sql
+    namespace: apps
+    files:
+      - ./config/postgres.initial.sql
 generatorOptions:
   disableNameSuffixHash: true

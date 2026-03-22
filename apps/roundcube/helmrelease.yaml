@@ -87,14 +87,11 @@ spec:
               - -c
               - |
                 export PGPASSWORD="${POSTGRES_PASSWORD}"
-                # Check if core schema exists; if not, create it
                 if psql -h "${DB_HOST}" -p 5432 -U "${DB_USER}" -d "${DB_NAME}" -c "SELECT 1 FROM users LIMIT 1" >/dev/null 2>&1; then
                   echo "Roundcube core schema already exists, skipping."
                 else
-                  echo "Roundcube core schema missing, fetching and applying..."
-                  # Download the initial SQL from the roundcube GitHub release matching our image tag
-                  wget -qO /tmp/postgres.initial.sql "https://raw.githubusercontent.com/roundcube/roundcubemail/1.6.11/SQL/postgres.initial.sql"
-                  psql -h "${DB_HOST}" -p 5432 -U "${DB_USER}" -d "${DB_NAME}" < /tmp/postgres.initial.sql
+                  echo "Roundcube core schema missing, applying..."
+                  psql -h "${DB_HOST}" -p 5432 -U "${DB_USER}" -d "${DB_NAME}" < /init-sql/postgres.initial.sql
                   echo "Core schema created."
                 fi
             env:
@@ -131,6 +128,15 @@ spec:
         name: roundcube-identity-switch-config
         globalMounts:
           - path: /config
+
+      init-sql:
+        enabled: true
+        type: configMap
+        name: roundcube-init-sql
+        advancedMounts:
+          main:
+            02-init-roundcube-schema:
+              - path: /init-sql
 
     ingress:
       main:
