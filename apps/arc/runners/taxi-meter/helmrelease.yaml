@@ -26,7 +26,7 @@ spec:
         runnerScaleSetName: taxi-meter
         githubConfigUrl: https://github.com/invakid404/taxi-meter
         githubConfigSecret:
-            github_token: REPLACE_ME_WITH_SOPS_ENCRYPTED_TOKEN
+            github_token: ENC[AES256_GCM,data:jlnOP026EwVCC0CYWE4lGN3WscowIK9q1ouEn5sM6HaRfgxpAXVKoA==,iv:eTAJfErEb/7LCx9bgN1pNo7zChhKoGpYjXx0huQHIuE=,tag:CBVorUNEF1fAkPZqpTL0xA==,type:str]
         template:
             spec:
                 containers:
@@ -35,3 +35,29 @@ spec:
                       imagePullPolicy: Always
                       command:
                         - /home/runner/run.sh
+sops:
+    lastmodified: "2026-04-04T14:52:40Z"
+    mac: ENC[AES256_GCM,data:6pQGIYOwUEnjs+2GkMUAqqY3c9KO6zh1pZ+8Has2Sq15r+4JLPnEx9C8Nj1xSvA2NezJMLaJAXUZe2btduOJolMeFcZhdwoFk7HZpIn6HvBJ8OlwII2vhlNqMYDIsPQwU113U2yWNd5Ekvh6Op7LenTFuw/Y/5lX6T/hh6Gv9Nk=,iv:h+Fubst9/CK5/I8RJCz2Qw3TH+vHZ0CTwgAAlfLnFqQ=,tag:FLRkf1LfN6FKDjSAfqID0w==,type:str]
+    pgp:
+        - created_at: "2026-04-04T14:52:40Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            hQIMA83EhJxcYAoBAQ//eLsBy+CtW3Mx6TVQX2x/23YmEUIAbUxqNorx+j0rtUDD
+            TbyXU99jHLckr+pazQ0Aq9iU+qI88tdj7uD2ohjV+g1USh93YFEOnrcxAYpKvqMO
+            /YZnoULOf4hw1TRpiuA4xYXZv+BygRa8Yrkfp/mjP1gj9kGKYJ9tIcLL/JBG8poZ
+            HxMsopAGx5PhujfCXFGXb6fTaZdu8doSJlDA3yMvjeV6+KQOk2EzoGavGhE17Pk1
+            4qyNRnUVJtlqD8eR5Wo+uXbXBEzVHCBun9c+Bn47LtodJSPWNhj2/gXIB6Gw9i3c
+            rCXAHRx7O+UUKort9vqOwRiU2brJy6GGnZVLPIhMJjk/t+DHQ/7/gzOPSQ23xnVL
+            VtQ1t/WU/5fTjPNzmYdNjxQJydTYdZ0/NFpf9ckOfwIu2VXoMz/F3xtmLwK5Yy39
+            5kPxG0Rvu5RZ/XjTRZXGToNjt1+Q4JqeplvOQOLLV9KH4paLLM7+xtfqQzfSsqNW
+            XwBcKwv6BtABpay3xj2B9JX54awk4LhU4P5O8eJu5XLPqpUyIk0q38G/dW/bvEKM
+            OxHApq7ReeAE18Ery3ftttcGsixTCz/SYoaBxVLz8cGs+NH1xu8dcxOB/n1pjXvR
+            oqJUz5mbtxXjqn1aSTvQ3Mn6/4feN+2wvIKrhHUrsNqKd2/v5IuaEXU2cJr8uKbS
+            XgFthkEWvMe2+qA2F0ANeyzmPGig0DyplBknf/9TQzurGdYC/9yi6hWZa6YctKaQ
+            9NoTvYhYcuTD7VpdB5/KLKfEmnqEasowgHV1jirAtAVYn1nxyU8Rz75Tlf/Nfcg=
+            =u0ru
+            -----END PGP MESSAGE-----
+          fp: 05FA72D13D58F8D4588BE3FE5606FFB02A5F0984
+    encrypted_regex: ((?i)(pass($|word)|claim|secret($|[^N])|key|token|^data$|^stringData))
+    version: 3.12.2
