@@ -5,3 +5,4 @@ resources:
   - ./abcccid
   - ./invablog
   - ./sudoku
+  - ./taxi-meter
