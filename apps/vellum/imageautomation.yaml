@@ -1,20 +1,24 @@
 ---
+# Image automation lives entirely in flux-system: the ImageUpdateAutomation
+# only resolves ImagePolicy objects in its OWN namespace, so the repos/policies
+# must sit here too (not in `apps`). The $imagepolicy markers in helmrelease.yaml
+# reference these as `flux-system:vellum-<x>:tag`.
 apiVersion: image.toolkit.fluxcd.io/v1
 kind: ImageRepository
 metadata:
   name: vellum-api
-  namespace: apps
+  namespace: flux-system
 spec:
   image: ghcr.io/invakid404/vellum-api
   interval: 5m0s
   secretRef:
-    name: docker-config
+    name: ghcr-pull
 ---
 apiVersion: image.toolkit.fluxcd.io/v1
 kind: ImagePolicy
 metadata:
   name: vellum-api
-  namespace: apps
+  namespace: flux-system
 spec:
   imageRepositoryRef:
     name: vellum-api
@@ -29,18 +33,18 @@ apiVersion: image.toolkit.fluxcd.io/v1
 kind: ImageRepository
 metadata:
   name: vellum-web
-  namespace: apps
+  namespace: flux-system
 spec:
   image: ghcr.io/invakid404/vellum-web
   interval: 5m0s
   secretRef:
-    name: docker-config
+    name: ghcr-pull
 ---
 apiVersion: image.toolkit.fluxcd.io/v1
 kind: ImagePolicy
 metadata:
   name: vellum-web
-  namespace: apps
+  namespace: flux-system
 spec:
   imageRepositoryRef:
     name: vellum-web

@@ -24,6 +24,141 @@ spec:
       retries: 3
   uninstall:
     keepHistory: false
-  valuesFrom:
-    - kind: ConfigMap
-      name: vellum-values
+  # Values are inlined here (not a configMapGenerator ConfigMap) so the Flux
+  # image-automation Setters strategy can find and rewrite the image.tag markers
+  # below — it only scans YAMLs that follow k8s object conventions (apiVersion/
+  # kind), which a Helm values ConfigMap source file does not.
+  values:
+    controllers:
+      api:
+        replicas: 1
+        strategy: Recreate
+        annotations:
+          reloader.stakater.com/auto: "true"
+        pod:
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65532
+            runAsGroup: 65532
+            fsGroup: 65532
+        containers:
+          main:
+            image:
+              repository: ghcr.io/invakid404/vellum-api
+              tag: main-20260712153126-e08489d  # {"$imagepolicy": "flux-system:vellum-api:tag"}
+            env:
+              TZ: "${TIMEZONE}"
+              LLM_BASE_URL: "https://openrouter.ai/api/v1"
+              LLM_MODEL: "google/gemini-3.1-flash-lite"
+            envFrom:
+              - secretRef:
+                  name: vellum
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health/live
+                    port: 8080
+                  initialDelaySeconds: 10
+                  periodSeconds: 20
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health/ready
+                    port: 8080
+                  initialDelaySeconds: 5
+                  periodSeconds: 10
+            resources:
+              requests:
+                cpu: 50m
+                memory: 128Mi
+              limits:
+                memory: 512Mi
+      web:
+        replicas: 1
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          main:
+            image:
+              repository: ghcr.io/invakid404/vellum-web
+              tag: main-20260712153126-e08489d  # {"$imagepolicy": "flux-system:vellum-web:tag"}
+            env:
+              PORT: "3000"
+              ORIGIN: "https://vellum.${TAILSCALE_DOMAIN}"
+              API_BASE_URL: "http://vellum-api.apps.svc.cluster.local:8080"
+              BODY_SIZE_LIMIT: "12M"
+              TZ: "${TIMEZONE}"
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: 3000
+                  initialDelaySeconds: 15
+                  periodSeconds: 20
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: 3000
+                  initialDelaySeconds: 5
+                  periodSeconds: 10
+            resources:
+              requests:
+                cpu: 25m
+                memory: 128Mi
+              limits:
+                memory: 512Mi
+
+    defaultPodOptions:
+      imagePullSecrets:
+        - name: docker-config
+
+    service:
+      api:
+        controller: api
+        ports:
+          http:
+            port: 8080
+      web:
+        controller: web
+        ports:
+          http:
+            port: 3000
+
+    persistence:
+      data:
+        enabled: true
+        type: persistentVolumeClaim
+        accessMode: ReadWriteOnce
+        size: 5Gi
+        storageClass: synology-csi-retain
+        advancedMounts:
+          api:
+            main:
+              - path: /data
+
+    ingress:
+      web:
+        className: tailscale
+        annotations:
+          tailscale.com/hostname: vellum
+        hosts:
+          - host: "vellum.${TAILSCALE_DOMAIN}"
+            paths:
+              - path: /
+                service:
+                  identifier: web
+                  port: http
+        tls:
+          - hosts:
+              - "vellum.${TAILSCALE_DOMAIN}"

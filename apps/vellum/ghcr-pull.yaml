@@ -1,0 +1,34 @@
+kind: Secret
+type: kubernetes.io/dockerconfigjson
+apiVersion: v1
+metadata:
+    name: ghcr-pull
+    namespace: flux-system
+data:
+    .dockerconfigjson: ENC[AES256_GCM,data:1PteRzzpyzLiI4MGOhagwWnyOwE6YdWWmJBSdhE4ZbAkfwp7OBZI1BrG1FFaWxspON1N+kuyVGjmZfC3j4jhmixDCfH6fUdszX3mZdS9i1FKctzsHFmcUZAn7gNoPtM573zm0z6go5I3Pf7vN7JsruZg9Y/b20DGeMdPG/l68utjXO90AyhSKzOXDaf4hvVjb/npfJIlmRn3oy53JpRGiA==,iv:/FyPFXLa/ectqaNBrWYUPjlRhJnvlCYeir81oUsPlHw=,tag:OuSzY8jEUPHyfYW9gLIeAw==,type:str]
+sops:
+    encrypted_regex: ((?i)(pass($|word)|claim|secret($|[^N])|key|token|^data$|^stringData))
+    lastmodified: "2026-07-12T17:42:23Z"
+    mac: ENC[AES256_GCM,data:N25d5xz0t54HQ7mRsb84ZjuyLb156MOSYSfMfb/ZumAnDZ6xXUupKzcCXF8oTWN8sr282oQLGPAeEoWrZ6FRNUFzJg0QfvQyc4FRk1N2PInOhRKvyA40d00sX7A9LAIIzZVZpzCrEBl6PvLZ3T2x/9131cwowEV/uCtEZbc4z0w=,iv:HdlsvC34k1nw9KeNYsjWVar8N5FrqAVzpmd+1fxtKNY=,tag:1TEgAuFEL5R4RMRc2DAIdQ==,type:str]
+    pgp:
+        - created_at: "2026-07-12T17:42:23Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            hQIMA83EhJxcYAoBAQ/+Nk0iLf/LVihCnGsLBCleAjjZufbEGiJwuucMtWTnytBU
+            lXd5rWifgKv36cbaSFaM75tdfBEe7f/ZKrJHOK8XojBRAHC25lU/dr94YwqdW0M2
+            b3LtpR/GPAMikz6DLNigPo3gtd5hdpQkaMjYWqloAhbKEGuRMEZlTIE5elG6K2yq
+            cEc+q9bP+avMnPHSgd4X1mWEADfIHd3Y2LBexeOluhGnqKcQAfjk4vjAa4x5wohT
+            qFzWvRJVBfUwr/gGsbZeJZcioRrkIg9YFKNns5AnBb2oSNtgt5edN50SUh/amSvi
+            NqFlLFl5KCQN1zzsI2nSwDbTJN4vEMMmXwc273KxagD5MXscLYVOrx9gLCc9eGBW
+            qCCfFagD/8kKQm3qWdJJmB57c9RT1CRp/d2uXVN+9d+WAP9Yo6An5KjqhsHe0Whm
+            gxS7cMh4AvavcyWMyKiSOKoNIxmBVU5eH4n/1thQxbp5e/haN8WIcKPPhVNGVjHb
+            ked8qmPDM4ZaphW2qDGahOW4oWLQffKq99ZCj3l2qhXnpvHHlGQ2L61vCqgrDPj+
+            LJDjh87Tv0NZBgIDLH/3WLNeeBHhyKKrb8eOcN+S8DxYlqIqY48BcdG4M2wZBaOj
+            jJNpeFpI6pKPmHWveNnUfYpMAny7U/Mz8lETg2hzEiHx9GhNTWeAVMz4j85JwlHS
+            XgEvCB30k04tXhRIUaZgru8Qqu5G1Uw5dx+aR0Hxh0FrhlSfdV6XmDKyXj8TZnq1
+            Gb5ilYpWTfic+YjZJsYarYM/4xj0xYhz9hdTSvU8ubfkF1Wq3gTCNwXFIp+KS/0=
+            =dCow
+            -----END PGP MESSAGE-----
+          fp: 05FA72D13D58F8D4588BE3FE5606FFB02A5F0984
+    version: 3.13.2
