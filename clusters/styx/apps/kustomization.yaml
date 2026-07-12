@@ -25,6 +25,7 @@ resources:
   - ./qbittorrent.yaml
   - ./qui.yaml
   - ./union.yaml
+  - ./vellum.yaml
   - ./verdaccio.yaml
   - ./webhook.yaml
   - ./windmill.yaml

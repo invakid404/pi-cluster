@@ -1,0 +1,77 @@
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImageRepository
+metadata:
+  name: vellum-api
+  namespace: apps
+spec:
+  image: ghcr.io/invakid404/vellum-api
+  interval: 5m0s
+  secretRef:
+    name: docker-config
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImagePolicy
+metadata:
+  name: vellum-api
+  namespace: apps
+spec:
+  imageRepositoryRef:
+    name: vellum-api
+  filterTags:
+    pattern: '^main-(?P<ts>[0-9]{14})-[0-9a-f]+$'
+    extract: '$ts'
+  policy:
+    numerical:
+      order: asc
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImageRepository
+metadata:
+  name: vellum-web
+  namespace: apps
+spec:
+  image: ghcr.io/invakid404/vellum-web
+  interval: 5m0s
+  secretRef:
+    name: docker-config
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImagePolicy
+metadata:
+  name: vellum-web
+  namespace: apps
+spec:
+  imageRepositoryRef:
+    name: vellum-web
+  filterTags:
+    pattern: '^main-(?P<ts>[0-9]{14})-[0-9a-f]+$'
+    extract: '$ts'
+  policy:
+    numerical:
+      order: asc
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImageUpdateAutomation
+metadata:
+  name: vellum
+  namespace: flux-system
+spec:
+  interval: 5m0s
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  git:
+    checkout:
+      ref:
+        branch: main
+    commit:
+      author:
+        name: fluxcdbot
+        email: fluxcdbot@users.noreply.github.com
+      messageTemplate: 'chore(vellum): update image tags [skip ci]'
+    push:
+      branch: main
+  update:
+    path: ./apps/vellum
+    strategy: Setters
