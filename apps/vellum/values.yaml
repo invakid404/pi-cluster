@@ -15,7 +15,7 @@ controllers:
       main:
         image:
           repository: ghcr.io/invakid404/vellum-api
-          tag: main-20260712153126-e08489d  # {"$imagepolicy": "apps:vellum-api"}
+          tag: main-20260712153126-e08489d  # {"$imagepolicy": "apps:vellum-api:tag"}
         env:
           TZ: "${TIMEZONE}"
           LLM_BASE_URL: "https://openrouter.ai/api/v1"
@@ -56,7 +56,7 @@ controllers:
       main:
         image:
           repository: ghcr.io/invakid404/vellum-web
-          tag: main-20260712153126-e08489d  # {"$imagepolicy": "apps:vellum-web"}
+          tag: main-20260712153126-e08489d  # {"$imagepolicy": "apps:vellum-web:tag"}
         env:
           PORT: "3000"
           ORIGIN: "https://vellum.${TAILSCALE_DOMAIN}"
