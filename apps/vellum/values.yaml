@@ -18,6 +18,11 @@ controllers:
           tag: main-20260712153126-e08489d  # {"$imagepolicy": "apps:vellum-api"}
         env:
           TZ: "${TIMEZONE}"
+          LLM_BASE_URL: "https://openrouter.ai/api/v1"
+          LLM_MODEL: "google/gemini-3.1-flash-lite"
+        envFrom:
+          - secretRef:
+              name: vellum
         probes:
           liveness:
             enabled: true

@@ -17,5 +17,9 @@ spec:
         name: cluster-config
       - kind: Secret
         name: cluster-secrets
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-gpg
   dependsOn:
     - name: apps-base
