@@ -1,0 +1,35 @@
+{
+  "$id": "https://vellum.local/schemas/identity.v0.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Vellum person",
+  "type": "object",
+  "properties": {
+    "traits": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "format": "email",
+          "title": "E-Mail",
+          "minLength": 3,
+          "ory.sh/kratos": {
+            "credentials": {
+              "password": {
+                "identifier": true
+              }
+            },
+            "verification": {
+              "via": "email"
+            },
+            "recovery": {
+              "via": "email"
+            }
+          }
+        }
+      },
+      "required": ["email"],
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

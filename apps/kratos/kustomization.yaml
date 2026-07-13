@@ -1,0 +1,23 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ./helmrelease.yaml
+  - ./secret.yaml
+configMapGenerator:
+  # Helm values (hashed name -> HelmRelease redeploys on change via nameReference).
+  - name: kratos-values
+    namespace: apps
+    files:
+      - values.yaml
+  # Kratos config files, mounted into the pod at /etc/config/kratos. Stable name
+  # (no hash suffix) so values.yaml persistence.config.name can reference it;
+  # stakater reloader restarts the pod when this ConfigMap changes.
+  - name: kratos-config
+    namespace: apps
+    options:
+      disableNameSuffixHash: true
+    files:
+      - config/kratos.yml
+      - config/identity.schema.json
+configurations:
+  - kustomizeconfig.yaml

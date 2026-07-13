@@ -12,6 +12,7 @@ resources:
   - ./image-host-config.yaml
   - ./image-host.yaml
   - ./invapaste.yaml
+  - ./kratos.yaml
   - ./magicauth.yaml
   - ./mergedoc.yaml
   - ./mermaid2svg.yaml

@@ -49,6 +49,7 @@ spec:
               TZ: "${TIMEZONE}"
               LLM_BASE_URL: "https://openrouter.ai/api/v1"
               LLM_MODEL: "google/gemini-3.1-flash-lite"
+              KRATOS_PUBLIC_URL: "http://kratos-public.apps.svc.cluster.local:4433"
             envFrom:
               - secretRef:
                   name: vellum
@@ -92,6 +93,8 @@ spec:
               API_BASE_URL: "http://vellum-api.apps.svc.cluster.local:8080"
               BODY_SIZE_LIMIT: "12M"
               TZ: "${TIMEZONE}"
+              KRATOS_PUBLIC_URL: "http://kratos-public.apps.svc.cluster.local:4433"
+              PUBLIC_KRATOS_BROWSER_URL: "https://vellum.${TAILSCALE_DOMAIN}/kratos"
             probes:
               liveness:
                 enabled: true

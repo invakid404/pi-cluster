@@ -1,0 +1,99 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/common-3.1.0/charts/library/common/values.schema.json
+#
+# Ory Kratos for Vellum, fronted by the vellum BFF (same-origin proxy) — NO
+# ingress of its own. Services: kratos-public (:4433, used by the BFF proxy +
+# the Gin API's /sessions/whoami) and kratos-admin (:4434, cluster-internal
+# only). Config files come from the kratos-config ConfigMap; DSN + cookie/cipher
+# secrets come from the `kratos` Secret via envFrom.
+controllers:
+  main:
+    annotations:
+      reloader.stakater.com/auto: "true"
+    initContainers:
+      # Run schema migrations against the kratos DB BEFORE serving (never
+      # application-startup best-effort). Reads DSN from the kratos Secret.
+      01-migrate:
+        image:
+          repository: oryd/kratos
+          tag: v1.3.1@sha256:fe2428f103a6240c064b6ea77d3088610865c55fcebccb30355857eccdc25b4b
+        command:
+          - kratos
+        args:
+          - migrate
+          - sql
+          - up
+          - -e
+          - --yes
+          - --config
+          - /etc/config/kratos/kratos.yml
+        envFrom:
+          - secretRef:
+              name: kratos
+    containers:
+      main:
+        image:
+          repository: oryd/kratos
+          tag: v1.3.1@sha256:fe2428f103a6240c064b6ea77d3088610865c55fcebccb30355857eccdc25b4b
+        command:
+          - kratos
+        args:
+          - serve
+          - --config
+          - /etc/config/kratos/kratos.yml
+        envFrom:
+          - secretRef:
+              name: kratos
+        probes:
+          liveness:
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /health/alive
+                port: 4434
+              initialDelaySeconds: 15
+              periodSeconds: 20
+              timeoutSeconds: 3
+              failureThreshold: 5
+          readiness:
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /health/ready
+                port: 4434
+              initialDelaySeconds: 10
+              periodSeconds: 10
+              timeoutSeconds: 3
+              failureThreshold: 5
+        resources:
+          requests:
+            cpu: 25m
+            memory: 128Mi
+          limits:
+            memory: 256Mi
+
+service:
+  # kratos-public.apps.svc.cluster.local:4433
+  public:
+    controller: main
+    primary: true
+    ports:
+      http:
+        port: 4433
+  # kratos-admin.apps.svc.cluster.local:4434 (cluster-internal only, no ingress)
+  admin:
+    controller: main
+    ports:
+      http:
+        port: 4434
+
+persistence:
+  # Kratos config + identity schema, mounted read-only into main + init.
+  config:
+    type: configMap
+    name: kratos-config
+    globalMounts:
+      - path: /etc/config/kratos
+        readOnly: true

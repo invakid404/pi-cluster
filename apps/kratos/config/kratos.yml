@@ -1,0 +1,110 @@
+# Ory Kratos — CLUSTER overlay (styx / apps namespace).
+#
+# This is the deployed counterpart of cv-builder infra/kratos/kratos.yml. Key
+# differences from local dev:
+#   - SAME-ORIGIN: the browser only ever reaches Kratos through the vellum BFF
+#     proxy at https://vellum.<domain>/kratos/*, so serve.public.base_url carries
+#     that /kratos path prefix and every self-service ui_url is a vellum page.
+#   - DSN + secrets.cookie + secrets.cipher are NOT inlined — they come from the
+#     `kratos` Secret via envFrom (DSN / SECRETS_COOKIE / SECRETS_CIPHER).
+#   - log.leak_sensitive_values = false, format = json.
+#   - courier SMTP is a deferred placeholder; verification is done via the admin
+#     API for now, so no custom courier templates are shipped (Kratos defaults).
+#
+# ${TAILSCALE_DOMAIN} is substituted by Flux (postBuild substituteFrom
+# cluster-config) at apply time.
+version: v1.3.1
+
+serve:
+  public:
+    base_url: https://vellum.${TAILSCALE_DOMAIN}/kratos/
+    cors:
+      enabled: true
+      allowed_origins:
+        - https://vellum.${TAILSCALE_DOMAIN}
+      allowed_methods: [POST, GET, PUT, PATCH, DELETE]
+      allowed_headers: [Authorization, Cookie, Content-Type, X-Session-Token]
+      exposed_headers: [Content-Type, Set-Cookie]
+      allow_credentials: true
+  admin:
+    base_url: http://kratos-admin.apps.svc.cluster.local:4434/
+
+selfservice:
+  default_browser_return_url: https://vellum.${TAILSCALE_DOMAIN}/
+  allowed_return_urls:
+    - https://vellum.${TAILSCALE_DOMAIN}
+
+  methods:
+    password:
+      enabled: true
+    code:
+      enabled: true
+
+  flows:
+    error:
+      ui_url: https://vellum.${TAILSCALE_DOMAIN}/auth/error
+
+    settings:
+      ui_url: https://vellum.${TAILSCALE_DOMAIN}/auth/settings
+      privileged_session_max_age: 15m
+      required_aal: highest_available
+
+    recovery:
+      enabled: true
+      ui_url: https://vellum.${TAILSCALE_DOMAIN}/auth/recovery
+      use: code
+
+    verification:
+      enabled: true
+      ui_url: https://vellum.${TAILSCALE_DOMAIN}/auth/verification
+      use: code
+      after:
+        default_browser_return_url: https://vellum.${TAILSCALE_DOMAIN}/auth/login?verified=1
+
+    logout:
+      after:
+        default_browser_return_url: https://vellum.${TAILSCALE_DOMAIN}/auth/login
+
+    login:
+      ui_url: https://vellum.${TAILSCALE_DOMAIN}/auth/login
+      lifespan: 10m
+
+    registration:
+      lifespan: 10m
+      ui_url: https://vellum.${TAILSCALE_DOMAIN}/auth/register
+      # Email + password on one screen (matches local dev).
+      enable_legacy_one_step: true
+      after:
+        password:
+          hooks:
+            # No session on registration: verified email required before sign-in.
+            - hook: show_verification_ui
+
+log:
+  level: info
+  format: json
+  leak_sensitive_values: false
+
+# secrets.cookie / secrets.cipher come from env (SECRETS_COOKIE / SECRETS_CIPHER)
+# supplied by the `kratos` Secret — intentionally NOT inlined here.
+
+ciphers:
+  algorithm: xchacha20-poly1305
+
+hashers:
+  algorithm: bcrypt
+  bcrypt:
+    cost: 12
+
+identity:
+  default_schema_id: default
+  schemas:
+    - id: default
+      url: file:///etc/config/kratos/identity.schema.json
+
+courier:
+  # DEFERRED: no real SMTP yet. Verification/recovery are driven via the admin
+  # API for the beta. This placeholder keeps courier configuration valid; swap in
+  # a transactional provider (SPF/DKIM/DMARC) when SMTP lands.
+  smtp:
+    connection_uri: smtp://placeholder:placeholder@localhost:1025/?disable_starttls=true
