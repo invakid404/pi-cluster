@@ -44,7 +44,7 @@ spec:
           main:
             image:
               repository: ghcr.io/invakid404/vellum-api
-              tag: main-20260716184041-afd2d4f # {"$imagepolicy": "flux-system:vellum-api:tag"}
+              tag: main-20260723191435-53b7703 # {"$imagepolicy": "flux-system:vellum-api:tag"}
             env:
               TZ: "${TIMEZONE}"
               LLM_BASE_URL: "https://openrouter.ai/api/v1"
