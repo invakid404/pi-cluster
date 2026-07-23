@@ -144,17 +144,11 @@ spec:
         ports:
           http:
             port: 3000
-    persistence:
-      data:
-        enabled: true
-        type: persistentVolumeClaim
-        accessMode: ReadWriteOnce
-        size: 5Gi
-        storageClass: synology-csi-retain
-        advancedMounts:
-          api:
-            main:
-              - path: /data
+    # No PersistentVolumeClaim: the api runs on Postgres (core/postgres) + S3
+    # (core/minio) since U0.3, so it needs no local /data volume. Dropping the
+    # RWO PVC removes the single-node volume dependency that repeatedly stranded
+    # the pod (Multi-Attach) whenever the lima-k3s-worker node died. The api now
+    # schedules on any node and survives node loss.
     ingress:
       web:
         className: tailscale
