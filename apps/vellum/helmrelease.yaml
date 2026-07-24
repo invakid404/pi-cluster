@@ -96,7 +96,7 @@ spec:
           main:
             image:
               repository: ghcr.io/invakid404/vellum-web
-              tag: main-20260724111018-74443c7 # {"$imagepolicy": "flux-system:vellum-web:tag"}
+              tag: main-20260724112906-63c410e # {"$imagepolicy": "flux-system:vellum-web:tag"}
             env:
               PORT: "3000"
               ORIGIN: "https://vellum.${TAILSCALE_DOMAIN}"
