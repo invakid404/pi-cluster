@@ -29,5 +29,6 @@ resources:
   - ./vellum.yaml
   - ./verdaccio.yaml
   - ./webhook.yaml
+  - ./webtty-share.yaml
   - ./windmill.yaml
   - ./roundcube.yaml

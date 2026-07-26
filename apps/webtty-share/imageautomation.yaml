@@ -1,0 +1,55 @@
+---
+# Image automation lives in flux-system: an ImageUpdateAutomation only resolves
+# ImagePolicy objects in its OWN namespace, so the repo/policy sit here too. The
+# $imagepolicy marker in helmrelease.yaml references these as flux-system:webtty-share:tag.
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImageRepository
+metadata:
+  name: webtty-share
+  namespace: flux-system
+spec:
+  image: ghcr.io/invakid404/webtty-share
+  interval: 5m0s
+  # Reuses the shared ghcr-pull secret already present in flux-system (from apps/vellum).
+  secretRef:
+    name: ghcr-pull
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImagePolicy
+metadata:
+  name: webtty-share
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: webtty-share
+  filterTags:
+    pattern: '^main-(?P<ts>[0-9]{14})-[0-9a-f]+$'
+    extract: '$ts'
+  policy:
+    numerical:
+      order: asc
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImageUpdateAutomation
+metadata:
+  name: webtty-share
+  namespace: flux-system
+spec:
+  interval: 5m0s
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  git:
+    checkout:
+      ref:
+        branch: main
+    commit:
+      author:
+        name: fluxcdbot
+        email: fluxcdbot@users.noreply.github.com
+      messageTemplate: 'chore(webtty-share): update image tags [skip ci]'
+    push:
+      branch: main
+  update:
+    path: ./apps/webtty-share
+    strategy: Setters

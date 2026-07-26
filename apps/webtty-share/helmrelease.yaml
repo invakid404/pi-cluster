@@ -1,0 +1,112 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: webtty-share
+  namespace: apps
+spec:
+  interval: 10m0s
+  chart:
+    spec:
+      chart: app-template
+      version: 3.1.0
+      interval: 10m0s
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s-labs
+        namespace: core
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
+  # Values inlined (not a configMapGenerator ConfigMap) so the Flux image-automation
+  # Setters strategy can find and rewrite the image.tag marker below.
+  values:
+    controllers:
+      main:
+        replicas: 1
+        strategy: RollingUpdate
+        annotations:
+          reloader.stakater.com/auto: "true"
+        pod:
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+        containers:
+          main:
+            image:
+              repository: ghcr.io/invakid404/webtty-share
+              tag: main-20260726130123-5c8fe65 # {"$imagepolicy": "flux-system:webtty-share:tag"}
+            env:
+              TZ: "${TIMEZONE}"
+              HOST: "0.0.0.0"
+              PORT: "3010"
+              # svelte-adapter-bun derives request origin from ORIGIN; must match the
+              # ingress host so the /send POST origin check passes behind TLS.
+              ORIGIN: "https://webtty-share.${TAILSCALE_DOMAIN}"
+              SHARE_ALLOWED_ORIGINS: "https://webtty-share.${TAILSCALE_DOMAIN}"
+              # Data lives on the Mac (hypnos); the pod reaches web-tty over the tailnet
+              # via the core/hypnos-ts egress. Membership from REST (no local sessions.db).
+              WEBTTY_MEMBERSHIP_SOURCE: "rest"
+              WEBTTY_MEMBERSHIP_URL: "http://hypnos-ts.core.svc.cluster.local:3001"
+              WEBTTY_MCP_URL: "http://hypnos-ts.core.svc.cluster.local:3003/mcp/sse"
+              # send_to_pty requires a resolved caller identity — dedicated shell session.
+              WEBTTY_MCP_CALLER_ID: "s-fy4kzzbbhz-mcpcaller"
+            # SHARE_SIGNING_SECRET + WEBTTY_BASIC_AUTH come from the SOPS `webtty-share` Secret.
+            envFrom:
+              - secretRef:
+                  name: webtty-share
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: 3010
+                  initialDelaySeconds: 10
+                  periodSeconds: 20
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: 3010
+                  initialDelaySeconds: 5
+                  periodSeconds: 10
+            resources:
+              requests:
+                cpu: 25m
+                memory: 128Mi
+              limits:
+                memory: 256Mi
+    defaultPodOptions:
+      imagePullSecrets:
+        - name: docker-config
+    service:
+      main:
+        controller: main
+        ports:
+          http:
+            port: 3010
+    ingress:
+      main:
+        className: tailscale
+        annotations:
+          tailscale.com/hostname: webtty-share
+        hosts:
+          - host: "webtty-share.${TAILSCALE_DOMAIN}"
+            paths:
+              - path: /
+                service:
+                  identifier: main
+                  port: http
+        tls:
+          - hosts:
+              - "webtty-share.${TAILSCALE_DOMAIN}"
