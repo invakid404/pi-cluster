@@ -55,6 +55,10 @@ spec:
               WEBTTY_MEMBERSHIP_SOURCE: "rest"
               WEBTTY_MEMBERSHIP_URL: "http://hypnos-ts.core.svc.cluster.local:3001"
               WEBTTY_MCP_URL: "http://hypnos-ts.core.svc.cluster.local:3003/mcp/sse"
+              # Terminal view: the backend WS proxy dials web-tty's /ws/<id> over the tailnet
+              # (Caddy :3001 → web-tty :3000, upgrade preserved). Without this the Terminal
+              # view reports "not configured" and the Transcript still works (fails soft).
+              WEBTTY_WS_URL: "ws://hypnos-ts.core.svc.cluster.local:3001"
               # No WEBTTY_MCP_CALLER_ID: the app derives the MCP caller from the share
               # (anchor id for reads, target id for sends) — both are always real sessions,
               # so no dedicated caller session is needed. Set the env only to force an override.
