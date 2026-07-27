@@ -36,6 +36,8 @@ spec:
         annotations:
           reloader.stakater.com/auto: "true"
         pod:
+          # Public-facing app: no k8s API access needed.
+          automountServiceAccountToken: false
           securityContext:
             runAsNonRoot: true
             runAsUser: 1000
@@ -45,6 +47,15 @@ spec:
             image:
               repository: ghcr.io/invakid404/webtty-share
               tag: main-20260727170354-ebd4717 # {"$imagepolicy": "flux-system:webtty-share:tag"}
+            # Defense-in-depth for a public-facing, RCE-capable app: a compromised
+            # process can't escalate, write the root fs, or use extra capabilities.
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop: [ALL]
+              seccompProfile:
+                type: RuntimeDefault
             env:
               TZ: "${TIMEZONE}"
               HOST: "0.0.0.0"
@@ -79,7 +90,7 @@ spec:
                 custom: true
                 spec:
                   httpGet:
-                    path: /
+                    path: /healthz
                     port: 3010
                   initialDelaySeconds: 10
                   periodSeconds: 20
@@ -88,7 +99,7 @@ spec:
                 custom: true
                 spec:
                   httpGet:
-                    path: /
+                    path: /healthz
                     port: 3010
                   initialDelaySeconds: 5
                   periodSeconds: 10
@@ -101,6 +112,12 @@ spec:
     defaultPodOptions:
       imagePullSecrets:
         - name: docker-config
+    # readOnlyRootFilesystem needs a writable /tmp for the Bun runtime.
+    persistence:
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp
     service:
       main:
         controller: main
