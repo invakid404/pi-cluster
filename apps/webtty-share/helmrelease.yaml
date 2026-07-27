@@ -55,8 +55,9 @@ spec:
               WEBTTY_MEMBERSHIP_SOURCE: "rest"
               WEBTTY_MEMBERSHIP_URL: "http://hypnos-ts.core.svc.cluster.local:3001"
               WEBTTY_MCP_URL: "http://hypnos-ts.core.svc.cluster.local:3003/mcp/sse"
-              # send_to_pty requires a resolved caller identity — dedicated shell session.
-              WEBTTY_MCP_CALLER_ID: "s-fy4kzzbbhz-mcpcaller"
+              # No WEBTTY_MCP_CALLER_ID: the app derives the MCP caller from the share
+              # (anchor id for reads, target id for sends) — both are always real sessions,
+              # so no dedicated caller session is needed. Set the env only to force an override.
             # SHARE_SIGNING_SECRET + WEBTTY_BASIC_AUTH come from the SOPS `webtty-share` Secret.
             envFrom:
               - secretRef:
