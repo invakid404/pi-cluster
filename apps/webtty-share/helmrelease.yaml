@@ -41,7 +41,7 @@ spec:
           main:
             image:
               repository: ghcr.io/invakid404/webtty-share
-              tag: main-20260727131459-6e9ae68 # {"$imagepolicy": "flux-system:webtty-share:tag"}
+              tag: main-20260727132628-7c31722 # {"$imagepolicy": "flux-system:webtty-share:tag"}
             env:
               TZ: "${TIMEZONE}"
               HOST: "0.0.0.0"
