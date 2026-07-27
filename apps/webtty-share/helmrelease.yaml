@@ -28,7 +28,10 @@ spec:
   values:
     controllers:
       main:
-        replicas: 1
+        # Two replicas are safe now that shared state (revocation denylist, single-use
+        # tickets, rate windows) lives in Postgres and revocation crosses replicas via
+        # LISTEN/NOTIFY. DATABASE_URL comes from the SOPS `webtty-share` Secret.
+        replicas: 2
         strategy: RollingUpdate
         annotations:
           reloader.stakater.com/auto: "true"
