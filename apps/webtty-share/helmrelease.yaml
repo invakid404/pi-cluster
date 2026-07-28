@@ -90,7 +90,7 @@ spec:
                 custom: true
                 spec:
                   httpGet:
-                    path: /healthz
+                    path: /livez
                     port: 3010
                   initialDelaySeconds: 10
                   periodSeconds: 20
