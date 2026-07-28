@@ -129,6 +129,7 @@ spec:
         className: tailscale
         annotations:
           tailscale.com/hostname: webtty-share
+          tailscale.com/funnel: "true"
         hosts:
           - host: "webtty-share.${TAILSCALE_DOMAIN}"
             paths:
