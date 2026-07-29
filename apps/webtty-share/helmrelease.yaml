@@ -46,7 +46,7 @@ spec:
           main:
             image:
               repository: ghcr.io/invakid404/webtty-share
-              tag: main-20260729093850-3f527ac # {"$imagepolicy": "flux-system:webtty-share:tag"}
+              tag: main-20260729160804-d802a87 # {"$imagepolicy": "flux-system:webtty-share:tag"}
             # Defense-in-depth for a public-facing, RCE-capable app: a compromised
             # process can't escalate, write the root fs, or use extra capabilities.
             securityContext:
