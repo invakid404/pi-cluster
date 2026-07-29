@@ -77,6 +77,11 @@ spec:
               # loopback or these hosts (this is where the Basic credential is sent). Required
               # by the hardened build or it fails closed at startup.
               WEBTTY_ALLOWED_UPSTREAM_HOSTS: "hypnos-ts.core.svc.cluster.local"
+              # Tailnet auto-participant: a share request arriving over the tailnet whose
+              # Tailscale-User-Login is in this allowlist is treated as participant regardless of
+              # the link's cap. Non-spoofable — Tailscale's proxy strips forged headers and public
+              # funnel visitors carry no such header. Empty/unset = feature off (the default).
+              WEBTTY_TAILNET_PARTICIPANT_LOGINS: "invakid404@github"
               # No WEBTTY_MCP_CALLER_ID: the app derives the MCP caller from the share
               # (anchor id for reads, target id for sends) — both are always real sessions,
               # so no dedicated caller session is needed. Set the env only to force an override.
