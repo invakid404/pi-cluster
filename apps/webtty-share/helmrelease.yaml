@@ -82,10 +82,22 @@ spec:
               # the link's cap. Non-spoofable — Tailscale's proxy strips forged headers and public
               # funnel visitors carry no such header. Empty/unset = feature off (the default).
               WEBTTY_TAILNET_PARTICIPANT_LOGINS: "invakid404@github"
+              # Files tab (read-only project browser): the backend dials sftpgo on hypnos over the
+              # same core/hypnos-ts egress. HOST must ALSO be in WEBTTY_ALLOWED_UPSTREAM_HOSTS (this
+              # is where the SFTP private key is sent) or the pod fails closed at startup — use the
+              # FQDN so it matches that allowlist. The private key is WEBTTY_FILES_SFTP_PRIVATE_KEY
+              # from the SOPS Secret below. All three of host / host key / private key are required,
+              # else the tab is hidden and nothing connects (fail-soft, like the WS proxy).
+              WEBTTY_FILES_SFTP_HOST: "hypnos-ts.core.svc.cluster.local"
+              WEBTTY_FILES_SFTP_PORT: "51873"
+              WEBTTY_FILES_SFTP_USER: "webtty-share"
+              # Pinned PUBLIC host key, verified before auth — no trust-on-first-use.
+              WEBTTY_FILES_SFTP_HOST_KEY: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHuV2rjv5NVddNDxvQJT4tSCLvNzn5xDADNwJxAf2Zpf"
               # No WEBTTY_MCP_CALLER_ID: the app derives the MCP caller from the share
               # (anchor id for reads, target id for sends) — both are always real sessions,
               # so no dedicated caller session is needed. Set the env only to force an override.
-            # SHARE_SIGNING_SECRET + WEBTTY_BASIC_AUTH come from the SOPS `webtty-share` Secret.
+            # SHARE_SIGNING_SECRET, WEBTTY_BASIC_AUTH, DATABASE_URL and WEBTTY_FILES_SFTP_PRIVATE_KEY
+            # come from the SOPS `webtty-share` Secret.
             envFrom:
               - secretRef:
                   name: webtty-share
