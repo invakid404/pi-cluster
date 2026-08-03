@@ -93,6 +93,18 @@ spec:
               WEBTTY_FILES_SFTP_USER: "webtty-share"
               # Pinned PUBLIC host key, verified before auth — no trust-on-first-use.
               WEBTTY_FILES_SFTP_HOST_KEY: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHuV2rjv5NVddNDxvQJT4tSCLvNzn5xDADNwJxAf2Zpf"
+              # Roots that may be mounted DIRECTLY, not only their descendants.
+              #
+              # The auto-attach rail requires a project to be strictly *under* a root, which is
+              # what stops /Users/inva/Coding exposing every repo at once. That also blocks the
+              # legitimate case of an agent whose working directory IS the shared directory.
+              # This is a separate list for exactly those paths. Keep it short — a flat root
+              # exposes everything in it as soon as a session sits there.
+              #
+              # hypnos' reconciler LaunchAgent (com.webtty-share.files-reconcile) must carry the
+              # SAME value: both layers check independently and both must agree, so change them
+              # together, reconciler first.
+              WEBTTY_FILES_FLAT_ROOTS: "/Users/inva/Downloads"
               # No WEBTTY_MCP_CALLER_ID: the app derives the MCP caller from the share
               # (anchor id for reads, target id for sends) — both are always real sessions,
               # so no dedicated caller session is needed. Set the env only to force an override.
