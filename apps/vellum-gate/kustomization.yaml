@@ -1,0 +1,12 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ./deployment.yaml
+# No secret.yaml: the gate reuses the existing SOPS `vellum` Secret (three keys,
+# named individually in the Deployment) and the namespace's `docker-config` pull
+# secret. No new credential is minted for the gate.
+#
+# No imageautomation.yaml either, unlike apps/vellum/: the gate-worker image
+# carries the adapter lock that decides which certification is in force, so
+# moving it is a review, not a reconcile. It is pinned by digest and bumped by
+# hand.

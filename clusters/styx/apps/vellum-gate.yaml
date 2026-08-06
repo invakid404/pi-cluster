@@ -1,0 +1,34 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: vellum-gate
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  path: ./apps/vellum-gate
+  prune: true
+  wait: true
+  # The gate is slower to become Ready than an ordinary app: the kubelet pulls a
+  # 336 MB gate-worker image (it carries the three pinned adapters, so that the
+  # privileged dind sidecar never needs a registry credential), then dind has to
+  # come up, then the worker's preflight loads ~240 MB of those adapters into an
+  # empty image store before it will exec. Five minutes (the default) would report
+  # a failure that is really a cold start.
+  timeout: 10m0s
+  postBuild:
+    substituteFrom:
+      - kind: ConfigMap
+        name: cluster-config
+      - kind: Secret
+        name: cluster-secrets
+  # No `decryption`: this Kustomization ships no encrypted resource. It CONSUMES
+  # the `vellum` Secret, which the vellum Kustomization below decrypts and owns.
+  dependsOn:
+    - name: apps-base
+    # Ordering, not coupling: the gate reads three keys out of the `vellum` Secret,
+    # and waiting for the release that owns it turns "Secret not found yet" from a
+    # startup crash loop into a dependency Flux already knows how to express.
+    - name: vellum
