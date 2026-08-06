@@ -1,0 +1,251 @@
+---
+# vellum-gate — the fail-closed render-check gate (cv-builder issue #16, P5).
+#
+# WHAT THIS IS. A single worker that leases CheckJobs off the durable Postgres
+# queue vellum-api already writes to, runs three digest-pinned adapter containers
+# against a rendered CV, and SEALS the result. The seal is the point: a
+# rendercheck.SealedCheck is the only evidence the publisher and scorer accept and
+# it can only be minted inside the package that runs the adapters, so the process
+# that measures MUST be the process that seals. That is why the gate is a workload
+# and not a config flag on the api.
+#
+# WHY IT IS ITS OWN POD. Running the adapters needs a container runtime. Giving
+# that to vellum-api would put a PRIVILEGED docker daemon inside the pod that
+# serves user requests and holds the Postgres + S3 credentials. This pod is the
+# isolation: it is not in any Service, has no Ingress, mounts no service-account
+# token, and the api is untouched by this file.
+#
+# WHY IT IS PINNED TO ONE NODE. `hydra` is the worker with real headroom (~25% cpu
+# / ~36% mem) and it is not the control plane. dind's image store is an emptyDir,
+# so every reschedule costs a ~240 MB re-pull of the adapters; pinning keeps that
+# rare and keeps the privileged container somewhere known. Same mechanism the
+# windmill video worker already uses.
+#
+# WHAT IT DOES NOT DO. P5 deploys the gate; it does not turn publishing on. The api
+# still runs without an adapter lock, so it registers no publish routes and enqueues
+# nothing — this worker will idle on an empty queue until the api is flipped to
+# `-gate=enqueue-only` (P6). That is the intended end state of this change.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vellum-gate
+  namespace: apps
+  labels:
+    app.kubernetes.io/name: vellum-gate
+    app.kubernetes.io/instance: vellum-gate
+    app.kubernetes.io/component: render-check-gate
+    app.kubernetes.io/part-of: vellum
+spec:
+  # ONE. The adapters run sequentially inside one check, and one check at a time is
+  # the whole intended throughput on Pi-class hardware. More replicas would also
+  # multiply the privileged daemon, for a queue that is nearly always empty.
+  replicas: 1
+  # Recreate, not RollingUpdate: two workers must never share this node's dind
+  # storage emptyDir, and the queue's compare-and-swap lease is a correctness
+  # mechanism for crash recovery, not a reason to run an extra measuring process.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: vellum-gate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: vellum-gate
+        app.kubernetes.io/instance: vellum-gate
+      annotations:
+        # Restart when the `vellum` Secret rotates, exactly as the api does.
+        reloader.stakater.com/auto: "true"
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: hydra
+      # Nothing here talks to the Kubernetes API. A pod that runs a privileged
+      # daemon should not also carry a token that can ask the cluster questions.
+      automountServiceAccountToken: false
+      # For the PRIVATE gate-worker image (and it alone — the adapter images are
+      # pulled by the dind daemon inside the pod, using the same credential
+      # projected at DOCKER_CONFIG below, not by the kubelet).
+      imagePullSecrets:
+        - name: docker-config
+      # SIGTERM makes the worker stop claiming and finish the job in flight.
+      # Killing a check between the adapters and the commit is recoverable — that
+      # is what the lease is for — but recovering it means re-running three
+      # containers, so a planned rollout should not do it. Three adapter timeouts
+      # (4 + 8 + 4 s) plus a render and the commit fit inside this comfortably.
+      terminationGracePeriodSeconds: 120
+      containers:
+        # --- the sealer ------------------------------------------------------------
+        - name: gate-worker
+          # Pinned by TAG AND DIGEST. The tag says which build this is; the digest is
+          # what actually runs. This image carries the adapter lock the binary
+          # embeds, so "which image" and "which certification is in force" are the
+          # same question — it is not a thing to let float on :latest, and it is
+          # deliberately NOT under Flux image automation for the same reason: moving
+          # the gate is an owner decision, not a reconcile.
+          image: ghcr.io/invakid404/vellum-gate-worker:p5-20260806102050-d8caf8e@sha256:84c7e9c1eda9468d93fd8dd5f57ad85b0d5ae5e072f1fda1f4015ffc4533ffa3
+          args:
+            - -mode=worker
+          env:
+            - name: TZ
+              value: "${TIMEZONE}"
+            # Same backends the api uses, selected the same way (U0.3 env contract).
+            # The worker re-reads the draft and writes the release through the same
+            # cvbuilder service the api builds, so a worker pointed at different
+            # backends would publish something the api would not have.
+            - name: STORAGE_BACKEND
+              value: "postgres"
+            - name: BLOB_BACKEND
+              value: "s3"
+            - name: S3_ENDPOINT
+              value: "http://minio.core.svc.cluster.local:9000"
+            - name: S3_REGION
+              value: "us-east-1"
+            - name: S3_BUCKET
+              value: "vellum"
+            - name: S3_USE_PATH_STYLE
+              value: "true"
+            # The lock is a PATH, not a secret: the loadable tree (the lock plus the
+            # three adapters/<id>/oci-manifest.json files LoadLock resolves beside
+            # it) is baked into the image. LoadLock refuses any lock whose canonical
+            # identity differs from the copy compiled into this binary, so a
+            # mismatched pair does not produce a weaker gate — it produces no gate.
+            - name: VELLUM_ADAPTER_LOCK
+              value: "/app/rendercontract/adapter-lock.json"
+            - name: DOCKER_HOST
+              value: "unix:///var/run/docker.sock"
+            # Where the docker CLI finds the GHCR read credential for the adapter
+            # pulls. Read-only projection of the same `docker-config` pull secret
+            # every app in this namespace already uses.
+            - name: DOCKER_CONFIG
+              value: "/etc/vellum/docker"
+            # THREE KEYS, NAMED. Not `envFrom: secretRef: vellum`, which would also
+            # hand this pod OPENROUTER_API_KEY and GITHUB_TOKEN — credentials the
+            # worker has no code path to use (it never constructs an LLM or a source
+            # provider). The pod that runs a privileged daemon gets the least of that
+            # Secret it can do its job with.
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: vellum
+                  key: DATABASE_URL
+            - name: S3_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: vellum
+                  key: S3_ACCESS_KEY_ID
+            - name: S3_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: vellum
+                  key: S3_SECRET_ACCESS_KEY
+          volumeMounts:
+            # The dind socket. Shared emptyDir, NOT the host's docker socket.
+            - name: dind-sock
+              mountPath: /var/run
+            - name: docker-config
+              mountPath: /etc/vellum/docker
+              readOnly: true
+            # readOnlyRootFilesystem needs a writable /tmp ($HOME and $TMPDIR both
+            # point here in the image).
+            - name: tmp
+              mountPath: /tmp
+          # No probes. This container serves no port and exposes no health surface;
+          # an HTTP probe would be a fiction and an exec probe would need a shell in
+          # the check path. Liveness here is "the process is up", which is what the
+          # restart policy already means. Its readiness is instead PROVEN at startup:
+          # the entrypoint refuses to exec the worker until all three pinned adapters
+          # are present and identified, so a gate that cannot measure never leases.
+          resources:
+            requests:
+              # Real CPU, not the api's 50m: extraction is CPU-bound and the lock's
+              # 4/8/4 s timeouts are part of its immutable identity — a throttled
+              # check does not fail slowly, it returns `blocked_inconclusive`.
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              # NO cpu limit, deliberately: the ceiling that protects hydra from this
+              # pod is the memory limit, and a CPU limit here buys throttling in
+              # exchange for the one failure mode this workload cannot tolerate.
+              memory: 768Mi
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65532
+            runAsGroup: 65532
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+            seccompProfile:
+              type: RuntimeDefault
+        # --- the container runtime the adapters run on -----------------------------
+        # Modelled on the ARC runners (apps/arc/runners/*/helmrelease.yaml), which
+        # have run this exact image, privileged, over a shared emptyDir socket in
+        # this namespace for a long time. The differences from that precedent are
+        # both deliberate: the socket group is the gate-worker's GID so the sealer
+        # can stay non-root, and the daemon is bounded.
+        - name: dind
+          image: docker:24.0.7-dind-alpine3.18
+          # THE LEADING `dockerd` IS LOAD-BEARING — do not "simplify" it away.
+          # dockerd-entrypoint.sh injects `--host=tcp://0.0.0.0:2376` (with
+          # generated TLS certs) ONLY when it is given no arguments or a first
+          # argument starting with `-`. Naming `dockerd` explicitly skips that
+          # block entirely, so this daemon listens on the shared unix socket and
+          # NOTHING ELSE — verified: no TCP listener in the container. Drop the word
+          # and the gate quietly starts serving a docker API on its pod IP; clear
+          # DOCKER_TLS_CERTDIR instead and the same block serves :2375 with no TLS
+          # at all. Passing `dockerd` also keeps tini as pid 1, which reaps the
+          # one-shot adapter containers.
+          args:
+            - dockerd
+            - --host=unix:///var/run/docker.sock
+            # Makes the socket root:65532 0660, which is what lets the gate-worker
+            # container reach it as a non-root user.
+            - --group=65532
+          securityContext:
+            # THE ONE PRIVILEGED CONTAINER IN THIS CLUSTER'S APP NAMESPACE THAT IS
+            # NOT A CI RUNNER — and it is confined to this pod. It runs no user code:
+            # it runs exactly the three images the lock pins, each `--network none`,
+            # one shot, stdin to stdout.
+            privileged: true
+          volumeMounts:
+            - name: dind-sock
+              mountPath: /var/run
+            - name: dind-storage
+              mountPath: /var/lib/docker
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              # The adapter containers this daemon starts are nested inside THIS
+              # container's cgroup, so this number has to cover dockerd plus the
+              # heaviest adapter at once (pdfminer: CPython + cryptography). 512Mi
+              # leaves that pair no margin, and an OOM there is not a crash — it is a
+              # silent `blocked_inconclusive`, i.e. a gate that stops being able to
+              # publish without saying so. 1Gi keeps the whole pod's ceiling at
+              # 1.75Gi, comfortably inside hydra's headroom.
+              memory: 1Gi
+      volumes:
+        # The socket. An emptyDir shared by the two containers — the host's docker
+        # socket is never mounted anywhere.
+        - name: dind-sock
+          emptyDir: {}
+        # dind's image store. Ephemeral on purpose: the adapters are re-materialised
+        # by content address on every pod start (the entrypoint pulls
+        # repo@oci_digest), so there is no stale-image state to reason about.
+        # Measured footprint with all three adapters loaded: ~240 MB.
+        - name: dind-storage
+          emptyDir:
+            sizeLimit: 2Gi
+        - name: tmp
+          emptyDir:
+            sizeLimit: 256Mi
+        # The namespace's existing GHCR pull credential, projected as a docker CLI
+        # config so the dind daemon can pull the three PRIVATE adapter images. Read
+        # scope only; no registry write credential exists in this pod.
+        - name: docker-config
+          secret:
+            secretName: docker-config
+            items:
+              - key: .dockerconfigjson
+                path: config.json
