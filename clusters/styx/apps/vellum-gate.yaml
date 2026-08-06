@@ -11,8 +11,10 @@ spec:
   path: ./apps/vellum-gate
   prune: true
   wait: true
-  # The gate is slower to become Ready than an ordinary app: the dind sidecar has
-  # to come up and the worker's preflight pulls ~240 MB of pinned adapters into an
+  # The gate is slower to become Ready than an ordinary app: the kubelet pulls a
+  # 336 MB gate-worker image (it carries the three pinned adapters, so that the
+  # privileged dind sidecar never needs a registry credential), then dind has to
+  # come up, then the worker's preflight loads ~240 MB of those adapters into an
   # empty image store before it will exec. Five minutes (the default) would report
   # a failure that is really a cold start.
   timeout: 10m0s

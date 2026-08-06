@@ -16,10 +16,18 @@
 # token, and the api is untouched by this file.
 #
 # WHY IT IS PINNED TO ONE NODE. `hydra` is the worker with real headroom (~25% cpu
-# / ~36% mem) and it is not the control plane. dind's image store is an emptyDir,
-# so every reschedule costs a ~240 MB re-pull of the adapters; pinning keeps that
-# rare and keeps the privileged container somewhere known. Same mechanism the
+# / ~36% mem) and it is not the control plane. dind's image store is an emptyDir, so
+# every reschedule costs re-materialising ~240 MB of adapters into it; pinning keeps
+# that rare and keeps the privileged container somewhere known. Same mechanism the
 # windmill video worker already uses.
+#
+# NOTHING IN THIS POD TALKS TO A REGISTRY. The three pinned adapter images are baked
+# into the gate-worker image as loadable archives and `docker load`ed into dind at
+# startup. They used to be `docker pull`ed at pod start instead — and a docker client
+# hands the registry credential to the DAEMON to perform a pull, so that design
+# delivered the cluster's GHCR secret to the privileged daemon on every start. The
+# only pull left in this pod is the kubelet's, of the gate-worker image itself, and
+# kubelet credentials are exposed to neither container.
 #
 # WHAT IT DOES NOT DO. P5 deploys the gate; it does not turn publishing on. The api
 # still runs without an adapter lock, so it registers no publish routes and enqueues
@@ -62,9 +70,12 @@ spec:
       # Nothing here talks to the Kubernetes API. A pod that runs a privileged
       # daemon should not also carry a token that can ask the cluster questions.
       automountServiceAccountToken: false
-      # For the PRIVATE gate-worker image (and it alone — the adapter images are
-      # pulled by the dind daemon inside the pod, using the same credential
-      # projected at DOCKER_CONFIG below, not by the kubelet).
+      # For the PRIVATE gate-worker image, AND IT ALONE. This is the kubelet's
+      # credential for its own pull: the node reads this Secret, the containers
+      # never see it, and no process in this pod is handed it. It is deliberately
+      # NOT also projected into the pod any more — see the `dind` container below
+      # for what that used to mean. The adapters need no pull credential because
+      # they need no pull: they ship inside the gate-worker image.
       imagePullSecrets:
         - name: docker-config
       # SIGTERM makes the worker stop claiming and finish the job in flight.
@@ -82,7 +93,7 @@ spec:
           # same question — it is not a thing to let float on :latest, and it is
           # deliberately NOT under Flux image automation for the same reason: moving
           # the gate is an owner decision, not a reconcile.
-          image: ghcr.io/invakid404/vellum-gate-worker:p5-20260806102050-d8caf8e@sha256:84c7e9c1eda9468d93fd8dd5f57ad85b0d5ae5e072f1fda1f4015ffc4533ffa3
+          image: ghcr.io/invakid404/vellum-gate-worker:p5-20260806110701-4300a97@sha256:1ce87884718db410b159ed4e89bf0ff3246214d1998c22db8eea1bf1288c33c6
           args:
             - -mode=worker
           env:
@@ -113,11 +124,15 @@ spec:
               value: "/app/rendercontract/adapter-lock.json"
             - name: DOCKER_HOST
               value: "unix:///var/run/docker.sock"
-            # Where the docker CLI finds the GHCR read credential for the adapter
-            # pulls. Read-only projection of the same `docker-config` pull secret
-            # every app in this namespace already uses.
-            - name: DOCKER_CONFIG
-              value: "/etc/vellum/docker"
+            # THERE IS DELIBERATELY NO DOCKER_CONFIG HERE. It used to point at a
+            # read-only projection of the `docker-config` pull Secret so the docker
+            # CLI could pull the adapters — but the CLI does not perform a pull, the
+            # DAEMON does, and the client hands it the credential to do so. This pod
+            # runs that daemon PRIVILEGED. The adapters now ship inside the image, so
+            # there is nothing to pull and no credential to leak; the image's
+            # entrypoint asserts this variable's absence at startup and refuses to
+            # become a worker if it comes back, so re-adding it fails loudly rather
+            # than quietly restoring the flow.
             # THREE KEYS, NAMED. Not `envFrom: secretRef: vellum`, which would also
             # hand this pod OPENROUTER_API_KEY and GITHUB_TOKEN — credentials the
             # worker has no code path to use (it never constructs an LLM or a source
@@ -142,9 +157,6 @@ spec:
             # The dind socket. Shared emptyDir, NOT the host's docker socket.
             - name: dind-sock
               mountPath: /var/run
-            - name: docker-config
-              mountPath: /etc/vellum/docker
-              readOnly: true
             # readOnlyRootFilesystem needs a writable /tmp ($HOME and $TMPDIR both
             # point here in the image).
             - name: tmp
@@ -184,7 +196,27 @@ spec:
         # both deliberate: the socket group is the gate-worker's GID so the sealer
         # can stay non-root, and the daemon is bounded.
         - name: dind
-          image: docker:24.0.7-dind-alpine3.18
+          # PINNED BY TAG AND DIGEST, for a stronger reason than the gate-worker
+          # above. This is the PRIVILEGED daemon, and it is the process the worker
+          # trusts to answer `image inspect` and to run the adapters — it is inside
+          # the seal's trust boundary. `VerifyManifestBinding` proves the worker's
+          # committed adapter manifest bytes; it proves nothing about the behaviour
+          # of the daemon that reports on them. A mutable tag resolving to different
+          # bytes on a re-pull (upstream retag, compromised registry or mirror, cache
+          # refresh) would put a different privileged daemon in that position, and a
+          # substituted daemon can report the expected image id and platform and
+          # synthesize the expected probe and adapter output. So this digest is part
+          # of the cert-runtime review exactly as the gate-worker's is, and it moves
+          # only by an owner's reviewed edit.
+          #
+          # sha256:c90e58d3… is the multi-platform INDEX; on hydra (arm64) it resolves
+          # to the linux/arm64 child
+          # sha256:2afeb0c1357ac43eb81976a3a84995645872ab18644f6799677cd786de54cf40,
+          # which is the manifest actually run. Pinning the index rather than that
+          # child keeps the pin immutable without making the manifest wrong for any
+          # other node — the index enumerates its children by digest, so it is a
+          # complete cryptographic pin either way.
+          image: docker:24.0.7-dind-alpine3.18@sha256:c90e58d30700470fc59bdaaf802340fd25c1db628756d7bf74e100c566ba9589
           # THE LEADING `dockerd` IS LOAD-BEARING — do not "simplify" it away.
           # dockerd-entrypoint.sh injects `--host=tcp://0.0.0.0:2376` (with
           # generated TLS certs) ONLY when it is given no arguments or a first
@@ -231,21 +263,17 @@ spec:
         - name: dind-sock
           emptyDir: {}
         # dind's image store. Ephemeral on purpose: the adapters are re-materialised
-        # by content address on every pod start (the entrypoint pulls
-        # repo@oci_digest), so there is no stale-image state to reason about.
-        # Measured footprint with all three adapters loaded: ~240 MB.
+        # by content address on every pod start (the entrypoint `docker load`s the
+        # archives baked into the gate-worker image, and the engine derives each
+        # image's id from the archive's own config blob), so there is no stale-image
+        # state to reason about. Measured footprint with all three loaded: 236.3 MB.
         - name: dind-storage
           emptyDir:
             sizeLimit: 2Gi
         - name: tmp
           emptyDir:
             sizeLimit: 256Mi
-        # The namespace's existing GHCR pull credential, projected as a docker CLI
-        # config so the dind daemon can pull the three PRIVATE adapter images. Read
-        # scope only; no registry write credential exists in this pod.
-        - name: docker-config
-          secret:
-            secretName: docker-config
-            items:
-              - key: .dockerconfigjson
-                path: config.json
+        # NO docker-config VOLUME. There used to be one here — the namespace's GHCR
+        # pull credential projected as a docker CLI config — so the dind daemon could
+        # pull the three private adapter images. Nothing in this pod contacts a
+        # registry any more, so nothing in this pod needs a registry credential.
