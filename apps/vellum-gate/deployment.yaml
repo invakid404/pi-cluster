@@ -93,7 +93,7 @@ spec:
           # same question — it is not a thing to let float on :latest, and it is
           # deliberately NOT under Flux image automation for the same reason: moving
           # the gate is an owner decision, not a reconcile.
-          image: ghcr.io/invakid404/vellum-gate-worker:p5-20260806110701-4300a97@sha256:1ce87884718db410b159ed4e89bf0ff3246214d1998c22db8eea1bf1288c33c6
+          image: ghcr.io/invakid404/vellum-gate-worker:main-20260806151332-4300a97@sha256:57f7bdbcb7c5ea0da5ccfeac9aea798f03b653b6956a900a42629ca1ce0ede29
           args:
             - -mode=worker
           env:
