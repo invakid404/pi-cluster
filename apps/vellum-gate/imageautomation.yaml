@@ -2,7 +2,9 @@
 # Image automation for the gate-worker, mirroring apps/vellum/imageautomation.yaml.
 # The objects live in flux-system (an ImageUpdateAutomation only resolves
 # ImagePolicy objects in its OWN namespace), and the $imagepolicy marker on the
-# gate-worker image in deployment.yaml references flux-system:vellum-gate-worker:tag.
+# gate-worker image in deployment.yaml references flux-system:vellum-gate-worker
+# (unsuffixed: the Deployment image field is a full ref, so the setter is the
+# basic image-policy form, not the :tag form used for a separate tag: field).
 #
 # This is a SEPARATE ImageUpdateAutomation from `vellum` (which scans ./apps/vellum)
 # so it can scan ./apps/vellum-gate. The two commit independently — which is safe:
