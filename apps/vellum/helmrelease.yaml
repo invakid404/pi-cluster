@@ -45,6 +45,21 @@ spec:
             image:
               repository: ghcr.io/invakid404/vellum-api
               tag: main-20260806151332-4300a97 # {"$imagepolicy": "flux-system:vellum-api:tag"}
+            # P6 cutover (issue #16): flip the api to `-gate=enqueue-only`, so it
+            # registers the publish routes and ENQUEUES CheckJobs onto the durable
+            # postgres queue that the node-pinned `vellum-gate` worker already leases
+            # and SEALS. k8s `args` REPLACES the image CMD wholesale, so we replicate
+            # the image's default CMD verbatim and append the one new flag — dropping
+            # `-addr=:8080` here would break the readiness/liveness probes below.
+            # Deliberately NO `VELLUM_ADAPTER_LOCK`: the internet-facing api stays
+            # enqueue-only with no adapter runner and no docker, so it can never mint
+            # a pass without the gate's sealed evidence (the whole point of the split).
+            args:
+              - -addr=:8080
+              - -db=/data/cv-builder.sqlite
+              - -data-dir=/data/artifacts
+              - -fixtures=/app/fixtures
+              - -gate=enqueue-only
             env:
               TZ: "${TIMEZONE}"
               LLM_BASE_URL: "https://openrouter.ai/api/v1"
