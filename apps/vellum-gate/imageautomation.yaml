@@ -1,0 +1,63 @@
+---
+# Image automation for the gate-worker, mirroring apps/vellum/imageautomation.yaml.
+# The objects live in flux-system (an ImageUpdateAutomation only resolves
+# ImagePolicy objects in its OWN namespace), and the $imagepolicy marker on the
+# gate-worker image in deployment.yaml references flux-system:vellum-gate-worker
+# (unsuffixed: the Deployment image field is a full ref, so the setter is the
+# basic image-policy form, not the :tag form used for a separate tag: field).
+#
+# This is a SEPARATE ImageUpdateAutomation from `vellum` (which scans ./apps/vellum)
+# so it can scan ./apps/vellum-gate. The two commit independently — which is safe:
+# the queue is VERSION-PARTITIONED (a worker only claims jobs for its own
+# gate_contract_version), so the api and the worker advancing in different commits
+# can never mis-meet over a job, and a rollover drains seamlessly.
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImageRepository
+metadata:
+  name: vellum-gate-worker
+  namespace: flux-system
+spec:
+  image: ghcr.io/invakid404/vellum-gate-worker
+  interval: 5m0s
+  secretRef:
+    name: ghcr-pull
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImagePolicy
+metadata:
+  name: vellum-gate-worker
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: vellum-gate-worker
+  filterTags:
+    pattern: '^main-(?P<ts>[0-9]{14})-[0-9a-f]+$'
+    extract: '$ts'
+  policy:
+    numerical:
+      order: asc
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImageUpdateAutomation
+metadata:
+  name: vellum-gate
+  namespace: flux-system
+spec:
+  interval: 5m0s
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  git:
+    checkout:
+      ref:
+        branch: main
+    commit:
+      author:
+        name: fluxcdbot
+        email: fluxcdbot@users.noreply.github.com
+      messageTemplate: 'chore(vellum-gate): update image tag [skip ci]'
+    push:
+      branch: main
+  update:
+    path: ./apps/vellum-gate
+    strategy: Setters

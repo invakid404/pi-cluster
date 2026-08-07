@@ -48,11 +48,22 @@ spec:
   # the whole intended throughput on Pi-class hardware. More replicas would also
   # multiply the privileged daemon, for a queue that is nearly always empty.
   replicas: 1
-  # Recreate, not RollingUpdate: two workers must never share this node's dind
-  # storage emptyDir, and the queue's compare-and-swap lease is a correctness
-  # mechanism for crash recovery, not a reason to run an extra measuring process.
+  # RollingUpdate with a surge, not Recreate: on a contract-changing release the
+  # departing worker must keep draining ITS OWN version's jobs while the new build
+  # is already claiming the next version's, so the two must briefly overlap. This
+  # is safe because (1) the queue is now VERSION-PARTITIONED — a worker only ever
+  # claims jobs for its own gate_contract_version (cv-builder
+  # domain.GateContractVersion), so two builds over one queue never contend for
+  # the same job; (2) each pod gets its OWN dind emptyDir — emptyDir is per-pod,
+  # never shared between pods, so a second worker cannot touch the first's docker
+  # storage; and (3) hydra has ample headroom for two gate pods for the length of
+  # a rollover. maxUnavailable=0 keeps a worker leasing throughout; SIGTERM drains
+  # the departing one (see terminationGracePeriodSeconds).
   strategy:
-    type: Recreate
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   selector:
     matchLabels:
       app.kubernetes.io/name: vellum-gate
@@ -82,18 +93,29 @@ spec:
       # Killing a check between the adapters and the commit is recoverable — that
       # is what the lease is for — but recovering it means re-running three
       # containers, so a planned rollout should not do it. Three adapter timeouts
-      # (4 + 8 + 4 s) plus a render and the commit fit inside this comfortably.
-      terminationGracePeriodSeconds: 120
+      # (4 + 8 + 4 s) plus a render and the commit fit well inside this; the wide
+      # ceiling is deliberate headroom so a SIGKILL can never land mid-adapter and
+      # orphan a job during a contract-bump rollover — the departing worker owns
+      # the last drain of ITS version, and no newer-version worker will re-claim
+      # its jobs. The worker exits as soon as it is idle, so the ceiling only
+      # bounds the worst case; it does not slow a normal (idle-queue) rollout.
+      terminationGracePeriodSeconds: 600
       containers:
         # --- the sealer ------------------------------------------------------------
         - name: gate-worker
-          # Pinned by TAG AND DIGEST. The tag says which build this is; the digest is
-          # what actually runs. This image carries the adapter lock the binary
-          # embeds, so "which image" and "which certification is in force" are the
-          # same question — it is not a thing to let float on :latest, and it is
-          # deliberately NOT under Flux image automation for the same reason: moving
-          # the gate is an owner decision, not a reconcile.
-          image: ghcr.io/invakid404/vellum-gate-worker:main-20260806151332-4300a97@sha256:57f7bdbcb7c5ea0da5ccfeac9aea798f03b653b6956a900a42629ca1ce0ede29
+          # Under Flux image automation (ImagePolicy flux-system:vellum-gate-worker,
+          # see ./imageautomation.yaml), auto-advanced from main exactly like
+          # vellum-api/web. This REVERSES the earlier hand-pinned policy, and is safe
+          # now because the queue is VERSION-PARTITIONED: a worker only ever claims
+          # jobs for its own gate_contract_version, so an api and a worker on
+          # different builds can never mis-meet over a job and a rollover drains
+          # seamlessly (that is the whole point of the gate-contract-version work).
+          # The image still carries the adapter lock the binary embeds ("which image"
+          # == "which certification is in force"); that lock changes ONLY through the
+          # deliberate, separately-reviewed adapters re-cert flow, and it is that
+          # reviewed, merged result that CI-on-main publishes here. The tag is
+          # CI-on-main only (branch-protected) — the same trust basis as the api.
+          image: ghcr.io/invakid404/vellum-gate-worker:main-20260807130440-e21a9f5 # {"$imagepolicy": "flux-system:vellum-gate-worker"}
           args:
             - -mode=worker
           env:

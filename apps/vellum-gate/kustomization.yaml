@@ -2,11 +2,16 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - ./deployment.yaml
+  - ./imageautomation.yaml
 # No secret.yaml: the gate reuses the existing SOPS `vellum` Secret (three keys,
 # named individually in the Deployment) and the namespace's `docker-config` pull
 # secret. No new credential is minted for the gate.
 #
-# No imageautomation.yaml either, unlike apps/vellum/: the gate-worker image
-# carries the adapter lock that decides which certification is in force, so
-# moving it is a review, not a reconcile. It is pinned by digest and bumped by
-# hand.
+# imageautomation.yaml: the gate-worker is now auto-advanced from main by Flux,
+# like vellum-api/web. This reverses the earlier "pinned by digest, bumped by
+# hand" policy — safe now because the queue is VERSION-PARTITIONED (a worker only
+# claims jobs for its own gate_contract_version), so an api and a worker on
+# different builds can never mis-meet over a job. The image still carries the
+# adapter lock ("which image" == "which certification is in force"); that lock
+# changes only through the separately-reviewed adapters re-cert flow, whose
+# merged result is what CI-on-main publishes.
