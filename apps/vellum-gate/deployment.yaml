@@ -1,4 +1,3 @@
----
 # vellum-gate — the fail-closed render-check gate (cv-builder issue #16, P5).
 #
 # WHAT THIS IS. A single worker that leases CheckJobs off the durable Postgres
@@ -115,7 +114,7 @@ spec:
           # deliberate, separately-reviewed adapters re-cert flow, and it is that
           # reviewed, merged result that CI-on-main publishes here. The tag is
           # CI-on-main only (branch-protected) — the same trust basis as the api.
-          image: ghcr.io/invakid404/vellum-gate-worker:main-20260807130440-e21a9f5 # {"$imagepolicy": "flux-system:vellum-gate-worker"}
+          image: ghcr.io/invakid404/vellum-gate-worker:main-20260808132158-70028da # {"$imagepolicy": "flux-system:vellum-gate-worker"}
           args:
             - -mode=worker
           env:
@@ -295,7 +294,7 @@ spec:
         - name: tmp
           emptyDir:
             sizeLimit: 256Mi
-        # NO docker-config VOLUME. There used to be one here — the namespace's GHCR
-        # pull credential projected as a docker CLI config — so the dind daemon could
-        # pull the three private adapter images. Nothing in this pod contacts a
-        # registry any more, so nothing in this pod needs a registry credential.
+      # NO docker-config VOLUME. There used to be one here — the namespace's GHCR
+      # pull credential projected as a docker CLI config — so the dind daemon could
+      # pull the three private adapter images. Nothing in this pod contacts a
+      # registry any more, so nothing in this pod needs a registry credential.
