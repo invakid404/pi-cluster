@@ -1,0 +1,28 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: vellum-scraper
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  path: ./apps/vellum-scraper
+  prune: true
+  wait: true
+  postBuild:
+    substituteFrom:
+      - kind: ConfigMap
+        name: cluster-config
+      - kind: Secret
+        name: cluster-secrets
+  # No `decryption`: this Kustomization ships no encrypted resource. It CONSUMES the
+  # `vellum` Secret (one key, DATABASE_URL), which the `vellum` Kustomization below
+  # decrypts and owns.
+  dependsOn:
+    - name: apps-base
+    # Ordering, not coupling: the scraper reads DATABASE_URL out of the `vellum`
+    # Secret, so waiting for the release that owns it turns "Secret not found yet"
+    # from a startup crash into a dependency Flux already knows how to express.
+    - name: vellum

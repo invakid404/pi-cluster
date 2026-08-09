@@ -1,0 +1,183 @@
+---
+# vellum-scraper — the job-aggregator polling loop (cv-builder job-feed, Track 1).
+#
+# WHAT THIS IS. The THIRD binary mode of the vellum-api image: `-mode=scraper`.
+# It is a long-running, un-authenticated, polite network-fetch loop that polls the
+# registered job boards (dev.bg, zaplata.bg, rabota.bg) on an interval and upserts
+# their postings into the SHARED, un-tenanted `market_jobs` catalog in the same
+# Postgres the api reads for CV-based recommendations. It also runs an expiry sweep
+# that flips postings past their expires_at to `expired`. That is all it does: no
+# HTTP surface, no tenant, no blobs, no adapters, no container runtime.
+#
+# WHY IT IS ITS OWN POD (and not a goroutine in the api). It is a background loop
+# with a lifecycle of its own (interval, drain-on-SIGTERM, single-writer politeness)
+# that must NOT be multiplied by api replicas or coupled to api rollouts — the polite
+# rate limit is PER PROCESS, so exactly one scraper process may run at a time. A
+# separate single-replica Deployment is the cleanest way to guarantee that.
+#
+# WHY IT REUSES THE vellum-api IMAGE. The scraper needs the SAME taxonomy the matcher
+# uses (so a scraped posting's skills are directly comparable to a CV's) and the SAME
+# storage wiring the api/worker use. It is the same binary in a third mode, so it is
+# the same image (ghcr.io/invakid404/vellum-api), auto-advanced from main by Flux off
+# the EXISTING flux-system:vellum-api ImagePolicy — see ./imageautomation.yaml.
+#
+# WHAT IT DELIBERATELY IS NOT. No dind, no adapter-lock, no S3, no certification env:
+# the gate-worker needs those to MEASURE and SEAL; the scraper only FETCHES and
+# WRITES. Adding any of them here would be dead configuration.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vellum-scraper
+  namespace: apps
+  labels:
+    app.kubernetes.io/name: vellum-scraper
+    app.kubernetes.io/instance: vellum-scraper
+    app.kubernetes.io/component: job-feed-scraper
+    app.kubernetes.io/part-of: vellum
+spec:
+  # ONE. A single scraper is the whole intended throughput. Politeness is enforced
+  # PER PROCESS (the min-interval rate limit lives in one PoliteClient instance), so
+  # a second replica would simply DOUBLE the request rate the job boards see — the
+  # opposite of the compliant-aggregator posture. There is nothing to scale.
+  replicas: 1
+  # Recreate, NOT the gate's RollingUpdate. The gate can overlap two pods during a
+  # rollover because its queue is VERSION-PARTITIONED (the two never contend). The
+  # scraper has no such partition: two scraper processes hitting the boards at once
+  # would double the polite request rate, so the departing pod MUST be fully gone
+  # before the next one starts. A few seconds of no-scraper during a rollout is
+  # irrelevant for a loop that polls every ~6h. (The api itself uses Recreate for a
+  # kindred single-writer reason.)
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: vellum-scraper
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: vellum-scraper
+        app.kubernetes.io/instance: vellum-scraper
+      annotations:
+        # Restart when the `vellum` Secret rotates, exactly as the api and gate do
+        # (it reads DATABASE_URL out of it).
+        reloader.stakater.com/auto: "true"
+    spec:
+      # NODE PLACEMENT — MIRRORS THE GATE, but the gate's rationale (a privileged
+      # dind sidecar with a 240 MB emptyDir image store to re-materialise on every
+      # reschedule) does NOT apply here: the scraper is a stateless I/O-bound poller
+      # that can run on any node. Pinned to hydra to match the gate's posture and
+      # keep the vellum workloads on the node with headroom.
+      # OWNER: this pin is optional for the scraper — relax it (drop nodeSelector) if
+      # you'd rather the scraper reschedule freely on node loss.
+      nodeSelector:
+        kubernetes.io/hostname: hydra
+      # Nothing here talks to the Kubernetes API — it talks to Postgres and to public
+      # job boards only. No service-account token is projected.
+      automountServiceAccountToken: false
+      # For the kubelet's pull of the private vellum-api image. Same secret the api
+      # and gate use; the container is never handed it.
+      imagePullSecrets:
+        - name: docker-config
+      # SIGTERM is a DRAIN: it cancels the scrape loop, which stops new fetches; the
+      # in-flight request finishes (bounded by the polite client's HTTP timeout) and
+      # the process exits. Unlike the gate there is nothing to nurse — a request cut
+      # mid-flight is simply re-fetched next pass (every upsert is idempotent on the
+      # dedup fingerprint) — so this needs a MODEST grace, not the gate's 600 s
+      # adapter-drain ceiling. With Recreate, a long grace would only delay the next
+      # pod for no benefit.
+      terminationGracePeriodSeconds: 60
+      containers:
+        - name: scraper
+          # Reuse the vellum-api image, auto-advanced from main by Flux off the
+          # EXISTING flux-system:vellum-api ImagePolicy (the scraper is the same
+          # binary in a third mode, not a separate image). The marker is the
+          # UNSUFFIXED image-policy form because this is a Deployment `image:` full
+          # ref — NOT the `:tag` form the Helm values file uses for its split
+          # repository/tag fields. (Getting this wrong — a `:tag` suffix on a full
+          # `image:` scalar — is the documented earlier bug; keep it plain.)
+          image: ghcr.io/invakid404/vellum-api:main-20260809014905-ae0ef9a # {"$imagepolicy": "flux-system:vellum-api"}
+          args:
+            - -mode=scraper
+            # The blob store is opened UNCONDITIONALLY by the composition root (for
+            # all three modes), even though the scraper never writes a blob. With no
+            # S3 configured it falls back to the filesystem backend, which MkdirAll's
+            # this dir at startup — so under readOnlyRootFilesystem it must point at a
+            # writable mount. /tmp is the emptyDir below; the dir is created and then
+            # stays empty. (This is why the scraper needs no S3 env at all.)
+            - -data-dir=/tmp/artifacts
+            # Polite defaults are intentionally left to the binary:
+            #   -scrape-min-interval 12s  (a hard FLOOR; a lower value is clamped up)
+            #   -scrape-per-board-cap 500  (mandatory politeness ceiling)
+            #   -scrape-interval 6h, -scrape-sweep 1h
+            # Omitted here so the compiled-in polite minimums are what runs.
+          env:
+            - name: TZ
+              value: "${TIMEZONE}"
+            # readOnlyRootFilesystem makes the image's baked HOME (/home/nonroot) and
+            # the default /tmp read-only; redirect both to the writable emptyDir so
+            # the Go runtime / BAML init have somewhere to put temp state.
+            - name: HOME
+              value: "/tmp"
+            - name: TMPDIR
+              value: "/tmp"
+            # Same shared Postgres the api and gate use, selected the same way (U0.3
+            # env contract). The scraper writes the un-tenanted `market_jobs` catalog
+            # the api reads for recommendations, so it MUST be the same database.
+            - name: STORAGE_BACKEND
+              value: "postgres"
+            # NO BLOB_BACKEND / S3_* here, deliberately: the scraper never touches
+            # blobs, so it stays on the filesystem fallback (see -data-dir above) and
+            # needs none of the api/gate's S3 configuration.
+            #
+            # ONE KEY, NAMED. Not `envFrom: secretRef: vellum`, which would also hand
+            # this pod OPENROUTER_API_KEY, GITHUB_TOKEN and the S3 keys — none of
+            # which the scraper has a code path to use. It gets the least of the
+            # `vellum` Secret it can do its job with: just the DB DSN.
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: vellum
+                  key: DATABASE_URL
+            # SELF-IDENTIFYING BOT UA — a HARD non-evasion control. Startup validates
+            # it (product token + reachable https URL or real-domain email) and
+            # REFUSES to run without one, so this cannot be dropped or faked to a
+            # browser string.
+            # OWNER: confirm/replace this public contact — advertised to job boards.
+            - name: SCRAPER_USER_AGENT
+              value: "VellumJobBot/1.0 (+https://invak.id)"
+          volumeMounts:
+            # readOnlyRootFilesystem needs a writable /tmp (HOME/TMPDIR point here,
+            # and it holds the unused -data-dir blob dir).
+            - name: tmp
+              mountPath: /tmp
+          # No probes: the scraper serves no port and exposes no health surface. Its
+          # liveness is "the process is up", which the restart policy already means;
+          # an HTTP probe would be a fiction and an exec probe would need a shell in
+          # the image.
+          resources:
+            requests:
+              # I/O-bound: it spends its life waiting on the network (min 12 s between
+              # requests to a host) and on Postgres upserts, not on CPU. Modest by
+              # design, and well under the gate-worker's CPU-bound 250m/256Mi.
+              cpu: 50m
+              memory: 96Mi
+            limits:
+              # A CPU limit is fine here (unlike the gate, whose adapter timeouts made
+              # throttling unacceptable) — the scraper has no latency-sensitive path.
+              cpu: 300m
+              memory: 256Mi
+          securityContext:
+            # Mirrors the gate-worker's posture exactly.
+            runAsNonRoot: true
+            runAsUser: 65532
+            runAsGroup: 65532
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+            seccompProfile:
+              type: RuntimeDefault
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 256Mi

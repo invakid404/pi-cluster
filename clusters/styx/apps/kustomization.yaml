@@ -28,6 +28,7 @@ resources:
   - ./union.yaml
   - ./vellum.yaml
   - ./vellum-gate.yaml
+  - ./vellum-scraper.yaml
   - ./verdaccio.yaml
   - ./webhook.yaml
   - ./webtty-share.yaml
