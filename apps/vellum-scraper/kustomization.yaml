@@ -1,0 +1,12 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ./deployment.yaml
+  - ./imageautomation.yaml
+# No secret.yaml: the scraper reuses the existing SOPS `vellum` Secret (just the one
+# DATABASE_URL key, named individually in the Deployment) and the namespace's
+# `docker-config` pull secret. No new credential is minted for the scraper.
+#
+# imageautomation.yaml: only an ImageUpdateAutomation (path ./apps/vellum-scraper) —
+# no ImageRepository/ImagePolicy, because the scraper is the vellum-api image in a
+# third mode (-mode=scraper) and reuses the existing flux-system:vellum-api policy.

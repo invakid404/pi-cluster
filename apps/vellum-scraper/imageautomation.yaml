@@ -1,0 +1,44 @@
+---
+# Image automation for the scraper.
+#
+# UNLIKE apps/vellum-gate/imageautomation.yaml, this file declares NO ImageRepository
+# and NO ImagePolicy — and that is correct, not an omission. The gate-worker is a
+# DISTINCT image (ghcr.io/invakid404/vellum-gate-worker), so it needs its own repo +
+# policy. The scraper is NOT a distinct image: it is `-mode=scraper` of the SAME
+# ghcr.io/invakid404/vellum-api image the api runs, so it reuses the EXISTING
+# flux-system:vellum-api ImagePolicy (declared in apps/vellum/imageautomation.yaml).
+# The $imagepolicy marker on the Deployment `image:` scalar references that policy.
+# Minting a second ImageRepository for the same GHCR repo would scan it twice and
+# could only ever resolve to the same tag — pure redundancy.
+#
+# What IS needed is a SEPARATE ImageUpdateAutomation, because an ImageUpdateAutomation
+# rewrites exactly ONE `update.path`. The `vellum` automation scans ./apps/vellum and
+# the `vellum-gate` automation scans ./apps/vellum-gate; neither touches
+# ./apps/vellum-scraper. This one does. It resolves the same flux-system:vellum-api
+# policy and commits the scraper's Deployment onto the same latest main-* tag as the
+# api — so the scraper always runs the api's exact build. The three automations push
+# to main independently and touch different files, so they never conflict.
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImageUpdateAutomation
+metadata:
+  name: vellum-scraper
+  namespace: flux-system
+spec:
+  interval: 5m0s
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  git:
+    checkout:
+      ref:
+        branch: main
+    commit:
+      author:
+        name: fluxcdbot
+        email: fluxcdbot@users.noreply.github.com
+      messageTemplate: 'chore(vellum-scraper): update image tag [skip ci]'
+    push:
+      branch: main
+  update:
+    path: ./apps/vellum-scraper
+    strategy: Setters
