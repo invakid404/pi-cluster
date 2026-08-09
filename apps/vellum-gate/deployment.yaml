@@ -114,7 +114,7 @@ spec:
           # deliberate, separately-reviewed adapters re-cert flow, and it is that
           # reviewed, merged result that CI-on-main publishes here. The tag is
           # CI-on-main only (branch-protected) — the same trust basis as the api.
-          image: ghcr.io/invakid404/vellum-gate-worker:main-20260809014905-ae0ef9a # {"$imagepolicy": "flux-system:vellum-gate-worker"}
+          image: ghcr.io/invakid404/vellum-gate-worker:main-20260809081052-df5db0a # {"$imagepolicy": "flux-system:vellum-gate-worker"}
           args:
             - -mode=worker
           env:
