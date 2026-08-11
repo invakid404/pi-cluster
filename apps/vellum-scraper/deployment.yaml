@@ -94,7 +94,7 @@ spec:
           # ref — NOT the `:tag` form the Helm values file uses for its split
           # repository/tag fields. (Getting this wrong — a `:tag` suffix on a full
           # `image:` scalar — is the documented earlier bug; keep it plain.)
-          image: ghcr.io/invakid404/vellum-api:main-20260809231514-c5194a7 # {"$imagepolicy": "flux-system:vellum-api"}
+          image: ghcr.io/invakid404/vellum-api:main-20260811211201-5d6a56f # {"$imagepolicy": "flux-system:vellum-api"}
           args:
             - -mode=scraper
             # The blob store is opened UNCONDITIONALLY by the composition root (for
