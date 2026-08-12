@@ -4,15 +4,17 @@
 # must sit here too (not in `apps`). The $imagepolicy markers in helmrelease.yaml
 # reference these as `flux-system:lowrider-<x>:tag`.
 #
-# THE TWO IMAGES SHARE ONE TAG. CI mints a single `main-<UTC14>-<sha7>` per run
-# and pushes it to both, because a routerd release is only valid against the
-# engine generation it was released against. These are still two independent
-# ImagePolicy objects — Flux has no concept of a paired bump — so the lockstep
-# is not enforced here: it is enforced at runtime, where routerd compares the
-# engine's active build against ROUTERD_ENGINE_EXPECTED_BUILD_ID and its manifest
-# checksum and refuses the pairing rather than serving a mixed one. A CI run that
-# published only one of the two therefore surfaces as a failed engine_build
-# readiness check, not as a silently wrong answer.
+# THE THREE IMAGES SHARE ONE TAG. CI mints a single `main-<UTC14>-<sha7>` per run
+# and pushes it to routerd, graphhopper and web, because a routerd release is only
+# valid against the engine generation it was released against. These are still
+# independent ImagePolicy objects — Flux has no concept of a paired bump — so the
+# lockstep is not enforced here: it is enforced at runtime, where routerd compares
+# the engine's active build against ROUTERD_ENGINE_EXPECTED_BUILD_ID and its
+# manifest checksum and refuses the pairing rather than serving a mixed one. web is
+# a stateless UI/BFF and is not part of that runtime pairing; it just rides the
+# same tag. A CI run that published only some of the three therefore surfaces as a
+# failed engine_build readiness check (routerd/graphhopper) or a stale UI (web),
+# not a silently wrong answer.
 apiVersion: image.toolkit.fluxcd.io/v1
 kind: ImageRepository
 metadata:
@@ -58,6 +60,32 @@ metadata:
 spec:
   imageRepositoryRef:
     name: lowrider-graphhopper
+  filterTags:
+    pattern: '^main-(?P<ts>[0-9]{14})-[0-9a-f]+$'
+    extract: '$ts'
+  policy:
+    numerical:
+      order: asc
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImageRepository
+metadata:
+  name: lowrider-web
+  namespace: flux-system
+spec:
+  image: ghcr.io/invakid404/lowrider-web
+  interval: 5m0s
+  secretRef:
+    name: ghcr-pull-lowrider
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImagePolicy
+metadata:
+  name: lowrider-web
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: lowrider-web
   filterTags:
     pattern: '^main-(?P<ts>[0-9]{14})-[0-9a-f]+$'
     extract: '$ts'

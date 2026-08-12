@@ -226,6 +226,60 @@ spec:
                 # buffers. Sofia serves in a fraction of this; the heap ceiling
                 # is the one the graph was imported and measured under.
                 memory: 3Gi
+      # The SvelteKit test UI + its BFF (adapter-node). Stateless. It talks to
+      # routerd over the in-cluster Service (BACKEND_URL below), never the tailnet,
+      # and never sees the Google key — the browser only reaches /api/* proxy
+      # routes served by this Node process.
+      web:
+        replicas: 1
+        pod:
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            fsGroup: 1000
+        containers:
+          main:
+            image:
+              repository: ghcr.io/invakid404/lowrider-web
+              tag: main-20260812234601-7eb8315 # {"$imagepolicy": "flux-system:lowrider-web:tag"}
+            env:
+              TZ: "${TIMEZONE}"
+              HOST: "0.0.0.0"
+              PORT: "3000"
+              # Server-side BFF target: routerd's in-cluster Service, not the
+              # tailnet. routerd's empty CORS allowlist permits a server call.
+              BACKEND_URL: "http://lowrider-nav-routerd.apps.svc.cluster.local:8080"
+              # adapter-node behind the TLS-terminating Tailscale ingress: trust
+              # the forwarded proto/host so it derives correct absolute URLs.
+              PROTOCOL_HEADER: "x-forwarded-proto"
+              HOST_HEADER: "x-forwarded-host"
+              ORIGIN: "https://lowrider.${TAILSCALE_DOMAIN}"
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: 3000
+                  initialDelaySeconds: 10
+                  periodSeconds: 20
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: 3000
+                  initialDelaySeconds: 5
+                  periodSeconds: 10
+            resources:
+              requests:
+                cpu: 25m
+                memory: 64Mi
+              limits:
+                memory: 256Mi
     defaultPodOptions:
       imagePullSecrets:
         - name: docker-config
@@ -269,6 +323,11 @@ spec:
         ports:
           http:
             port: 8989
+      web:
+        controller: web
+        ports:
+          http:
+            port: 3000
     # No PersistentVolumeClaim anywhere in this release. routerd's state is the
     # postgres database (core/postgres, role and DB `lowrider`), and the engine's
     # state is the graph baked into its image.
@@ -287,3 +346,17 @@ spec:
         tls:
           - hosts:
               - "lowrider-api.${TAILSCALE_DOMAIN}"
+      web:
+        className: tailscale
+        annotations:
+          tailscale.com/hostname: lowrider
+        hosts:
+          - host: "lowrider.${TAILSCALE_DOMAIN}"
+            paths:
+              - path: /
+                service:
+                  identifier: web
+                  port: http
+        tls:
+          - hosts:
+              - "lowrider.${TAILSCALE_DOMAIN}"
