@@ -1,0 +1,62 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: lowrider-nav-policy
+  namespace: apps
+# The routing policy release routerd is configured against, verbatim from the
+# application repo (backend/deploy/policy/local.bundle.json at cb4fbc1).
+#
+# It is here rather than in the routerd image on purpose: the image bakes no
+# policy bundle and no feature flag, so which approved release is in force is a
+# deployment decision, visible in git, reviewable in a diff. The four identifiers
+# in helmrelease.yaml resolve against this document and its declared checksum;
+# routerd re-derives that checksum from the canonical content at startup and
+# refuses a bundle whose declaration disagrees, so an edit here that is not also
+# a re-stamped release fails closed at boot.
+#
+# The `-local-01` suffixes are the release's own identifiers and are kept exactly
+# as issued: they are how a stored evaluation says which release produced it, and
+# renaming them here would claim an approval that was never granted.
+#
+# Reloader rolls routerd when this ConfigMap changes (the controller carries
+# reloader.stakater.com/auto).
+data:
+  bundle.json: |
+    {
+      "release_id": "local-2026-08-12",
+      "checksum": "fa52cddd7deed8b666e9befd1522756d87f6f269dade5d000d55e503e7179741",
+      "policies": [
+        {
+          "kind": "routing",
+          "id": "routing-local-01",
+          "semantic_version": "1.0.0",
+          "checksum": "cc730a0fce06666d12b34332059093490983254d95b99ea7573e04b19b1265b8",
+          "release_id": "local-2026-08-12",
+          "activated_at": "2026-08-12T00:00:00Z"
+        },
+        {
+          "kind": "hazard",
+          "id": "hazard-category-local-01",
+          "semantic_version": "1.0.0",
+          "checksum": "8ef347bffc2840192add6b96826e776f9bb45885672a578e35488fd318bf0bd4",
+          "release_id": "local-2026-08-12",
+          "activated_at": "2026-08-12T00:00:00Z"
+        },
+        {
+          "kind": "explanation",
+          "id": "explanation-local-01",
+          "semantic_version": "1.0.0",
+          "checksum": "d74f649952670a8ca7ad0e19e082b61595bb544a4ea058a37771b7a08545f5b4",
+          "release_id": "local-2026-08-12",
+          "activated_at": "2026-08-12T00:00:00Z"
+        },
+        {
+          "kind": "handoff",
+          "id": "handoff-local-01",
+          "semantic_version": "1.0.0",
+          "checksum": "c2460b5493b4dbf08e85f17b72b8bc0c1e89558ceb3485147bfd84d99d3980be",
+          "release_id": "local-2026-08-12",
+          "activated_at": "2026-08-12T00:00:00Z"
+        }
+      ]
+    }

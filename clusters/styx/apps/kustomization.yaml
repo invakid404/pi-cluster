@@ -13,6 +13,7 @@ resources:
   - ./image-host.yaml
   - ./invapaste.yaml
   - ./kratos.yaml
+  - ./lowrider-nav.yaml
   - ./magicauth.yaml
   - ./mergedoc.yaml
   - ./mermaid2svg.yaml

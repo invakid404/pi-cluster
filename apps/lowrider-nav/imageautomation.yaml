@@ -1,0 +1,91 @@
+---
+# Image automation lives entirely in flux-system: the ImageUpdateAutomation
+# only resolves ImagePolicy objects in its OWN namespace, so the repos/policies
+# must sit here too (not in `apps`). The $imagepolicy markers in helmrelease.yaml
+# reference these as `flux-system:lowrider-<x>:tag`.
+#
+# THE TWO IMAGES SHARE ONE TAG. CI mints a single `main-<UTC14>-<sha7>` per run
+# and pushes it to both, because a routerd release is only valid against the
+# engine generation it was released against. These are still two independent
+# ImagePolicy objects — Flux has no concept of a paired bump — so the lockstep
+# is not enforced here: it is enforced at runtime, where routerd compares the
+# engine's active build against ROUTERD_ENGINE_EXPECTED_BUILD_ID and its manifest
+# checksum and refuses the pairing rather than serving a mixed one. A CI run that
+# published only one of the two therefore surfaces as a failed engine_build
+# readiness check, not as a silently wrong answer.
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImageRepository
+metadata:
+  name: lowrider-routerd
+  namespace: flux-system
+spec:
+  image: ghcr.io/invakid404/lowrider-routerd
+  interval: 5m0s
+  secretRef:
+    name: ghcr-pull-lowrider
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImagePolicy
+metadata:
+  name: lowrider-routerd
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: lowrider-routerd
+  filterTags:
+    pattern: '^main-(?P<ts>[0-9]{14})-[0-9a-f]+$'
+    extract: '$ts'
+  policy:
+    numerical:
+      order: asc
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImageRepository
+metadata:
+  name: lowrider-graphhopper
+  namespace: flux-system
+spec:
+  image: ghcr.io/invakid404/lowrider-graphhopper
+  interval: 5m0s
+  secretRef:
+    name: ghcr-pull-lowrider
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImagePolicy
+metadata:
+  name: lowrider-graphhopper
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: lowrider-graphhopper
+  filterTags:
+    pattern: '^main-(?P<ts>[0-9]{14})-[0-9a-f]+$'
+    extract: '$ts'
+  policy:
+    numerical:
+      order: asc
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImageUpdateAutomation
+metadata:
+  name: lowrider-nav
+  namespace: flux-system
+spec:
+  interval: 5m0s
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  git:
+    checkout:
+      ref:
+        branch: main
+    commit:
+      author:
+        name: fluxcdbot
+        email: fluxcdbot@users.noreply.github.com
+      messageTemplate: 'chore(lowrider-nav): update image tags [skip ci]'
+    push:
+      branch: main
+  update:
+    path: ./apps/lowrider-nav
+    strategy: Setters

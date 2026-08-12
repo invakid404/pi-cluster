@@ -1,0 +1,271 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: lowrider-nav
+  namespace: apps
+spec:
+  interval: 10m0s
+  chart:
+    spec:
+      chart: app-template
+      version: 3.1.0
+      interval: 10m0s
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s-labs
+        namespace: core
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
+  # Values are inlined here (not a configMapGenerator ConfigMap) so the Flux
+  # image-automation Setters strategy can find and rewrite the image.tag markers
+  # below — it only scans YAMLs that follow k8s object conventions (apiVersion/
+  # kind), which a Helm values ConfigMap source file does not.
+  #
+  # ROUTE-ONLY DEPLOYMENT. The approved posture is the route service and nothing
+  # else: ROUTERD_ROUTE_API_ENABLED=true, ROUTERD_HANDOFF_ENABLED=false, and no
+  # Google/maps credential anywhere in this directory. routerd registers exactly
+  # GET /healthz, GET /readyz, POST /v1/route and POST /route under that
+  # configuration; POST /v1/handoff is absent (404), not disabled-looking, which
+  # is what the design requires of a handoff whose gate could not run.
+  values:
+    controllers:
+      # The API. One replica, Recreate: migrations run in-process at startup
+      # (see ROUTERD_DATABASE_MIGRATION_MODE below), and two processes racing to
+      # migrate during a rollout is exactly what that mode must not meet.
+      routerd:
+        replicas: 1
+        strategy: Recreate
+        annotations:
+          reloader.stakater.com/auto: "true"
+        pod:
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65532
+            runAsGroup: 65532
+            fsGroup: 65532
+        containers:
+          main:
+            image:
+              repository: ghcr.io/invakid404/lowrider-routerd
+              tag: main-20260812181656-cb4fbc1 # {"$imagepolicy": "flux-system:lowrider-routerd:tag"}
+            env:
+              TZ: "${TIMEZONE}"
+              # staging, not production, and the reason is concrete rather than
+              # timid: the production posture refuses in-process migrations and
+              # requires an ordered migrate Job before the rollout, but the
+              # published image has no migrate subcommand yet (cmd/routerd
+              # refuses the argument), so `production` + `validate` would leave
+              # this database at schema version 0 forever. production also
+              # requires a non-empty browser CORS allowlist and a graph artifact
+              # location. Flip all four together when the migrate Job exists —
+              # not this one variable on its own.
+              ROUTERD_ENVIRONMENT: "staging"
+              # The container's own loopback is not reachable from the Service,
+              # so the listener binds the pod's network namespace. Exposure is
+              # decided by the tailscale ingress at the bottom of this file.
+              ROUTERD_HTTP_LISTEN_ADDRESS: "0.0.0.0:8080"
+              # ROUTERD_HTTP_ALLOWED_ORIGINS is deliberately unset: an empty
+              # allowlist permits curl and same-origin and nothing else. There
+              # is no browser client yet; naming one before it exists would
+              # widen the surface for no caller.
+              ROUTERD_ROUTE_API_ENABLED: "true"
+              # In-process, advisory-locked, single replica. See the Recreate
+              # strategy above and the ROUTERD_ENVIRONMENT note.
+              ROUTERD_DATABASE_MIGRATION_MODE: "up"
+              ROUTERD_DATABASE_EXPECTED_SCHEMA_VERSION: "4"
+              # ROUTERD_DATABASE_DSN is a SECRET and arrives from the SOPS
+              # `lowrider-nav` Secret via the envFrom below. The role, database
+              # and its postgis extension are created by the ordered Job in
+              # core/postgres (lowrider-db-init), not by this release.
+              ROUTERD_ENGINE_KIND: "graphhopper"
+              ROUTERD_ENGINE_BASE_URL: "http://lowrider-nav-graphhopper.apps.svc.cluster.local:8989"
+              # The approved graph generation. Both move together: an identifier
+              # without its manifest checksum cannot detect a rebuilt graph that
+              # reused the same name. The checksum is the sha256 of the dated
+              # Sofia extract the graph in the engine image was imported from —
+              # the same number recorded in the image's snapshot marker, so a
+              # routerd and a graphhopper that disagree about the snapshot are
+              # refused at readiness instead of mixed at request time.
+              ROUTERD_ENGINE_EXPECTED_BUILD_ID: "gh-10.2-sofia-2026-08-08"
+              ROUTERD_ENGINE_EXPECTED_MANIFEST_CHECKSUM: "536edd56dd83982cfd34dfc7fc0091e3120ac7a826474e9f3f0a4f3260bbdf9b"
+              # The four identifiers resolve against one immutable bundle and
+              # move as one approved release — setting some but not all is a
+              # startup error. Neither image bakes the bundle; it is a deploy-time
+              # artifact, mounted read-only from the policy-bundle.yaml ConfigMap
+              # (a service that could rewrite its own approved release could
+              # route against a policy nobody approved).
+              ROUTERD_POLICY_BUNDLE_PATH: "/etc/lowrider/policy/bundle.json"
+              ROUTERD_POLICY_ROUTING_ID: "routing-local-01"
+              ROUTERD_POLICY_HAZARD_ID: "hazard-category-local-01"
+              ROUTERD_POLICY_EXPLANATION_ID: "explanation-local-01"
+              ROUTERD_POLICY_HANDOFF_ID: "handoff-local-01"
+              # Route-only. No credential is mounted and no ref is named, so no
+              # handoff path is registered at all.
+              ROUTERD_HANDOFF_ENABLED: "false"
+              # Which OSM generation this process claims to answer from. It must
+              # name the same snapshot the engine image's baked graph carries.
+              ROUTERD_DATA_OSM_SOURCE_MANIFEST_REF: "osm-sofia-2026-08-08"
+              ROUTERD_OPS_LOG_LEVEL: "info"
+              # Exact origins, destinations and geometry stay out of ordinary
+              # logs; the loader refuses to relax this outside development.
+              ROUTERD_OPS_LOG_REDACTION: "coordinates"
+              # No metrics listener is wired yet; leaving this off avoids
+              # advertising a scrape target that nothing serves.
+              ROUTERD_OPS_METRICS_ENABLED: "false"
+            envFrom:
+              - secretRef:
+                  name: lowrider-nav
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /healthz
+                    port: 8080
+                  initialDelaySeconds: 15
+                  periodSeconds: 20
+              # Readiness probes /healthz, NOT /readyz, and that is a deliberate
+              # and temporary choice. /readyz gates on six checks, two of which
+              # (routing_policy, engine_build) read catalog rows that only the
+              # import-hazards one-shot writes — and that job reads the 20 MB
+              # dated extract, which neither published image carries, so it
+              # cannot run in-cluster from these manifests. Until it is run
+              # against this database out of band, /readyz answers not_ready and
+              # POST /v1/route answers 501: honest, observable, and reachable.
+              # Probing /readyz here instead would leave the Deployment with no
+              # endpoints and fail the HelmRelease rather than report the state.
+              # Move this to /readyz once the evidence generation is imported.
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /healthz
+                    port: 8080
+                  initialDelaySeconds: 5
+                  periodSeconds: 10
+            resources:
+              requests:
+                cpu: 25m
+                memory: 64Mi
+              limits:
+                memory: 256Mi
+      # The routing engine: a pinned GraphHopper 10.2 carrying the imported
+      # Sofia graph as a build artifact. No PVC and no mounted extract — the
+      # graph is in the image, which is what lets this schedule anywhere and
+      # start without a first-run import that would answer 404 for minutes and
+      # re-import on every reschedule. An empty volume mounted over
+      # /data/graph-cache would undo exactly that, so there is none.
+      graphhopper:
+        replicas: 1
+        # Recreate rather than RollingUpdate: two JVMs holding this heap at once
+        # is a memory spike the cluster does not need to take for a component
+        # whose brief absence routerd already reports as a failed engine check.
+        strategy: Recreate
+        # No reloader annotation: the engine mounts no ConfigMap and no Secret,
+        # so there is nothing for it to watch. Its configuration is the image.
+        pod:
+          securityContext:
+            runAsNonRoot: true
+            # The image creates and runs as this uid/gid and owns the baked
+            # graph with it.
+            runAsUser: 10001
+            runAsGroup: 10001
+            fsGroup: 10001
+        containers:
+          main:
+            image:
+              repository: ghcr.io/invakid404/lowrider-graphhopper
+              tag: main-20260812181656-cb4fbc1 # {"$imagepolicy": "flux-system:lowrider-graphhopper:tag"}
+            env:
+              TZ: "${TIMEZONE}"
+              GRAPHHOPPER_JAVA_OPTS: "-Xmx2g"
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health
+                    port: 8989
+                  initialDelaySeconds: 60
+                  periodSeconds: 20
+                  failureThreshold: 6
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health
+                    port: 8989
+                  initialDelaySeconds: 20
+                  periodSeconds: 10
+                  # Loading a baked graph is fast, but a cold node pulling a
+                  # 431 MB image plus JVM start is not; this allows ~5 minutes
+                  # before the pod is declared broken.
+                  failureThreshold: 30
+            resources:
+              requests:
+                cpu: 100m
+                memory: 768Mi
+              limits:
+                # Headroom over -Xmx2g for metaspace, code cache and direct
+                # buffers. Sofia serves in a fraction of this; the heap ceiling
+                # is the one the graph was imported and measured under.
+                memory: 3Gi
+    defaultPodOptions:
+      imagePullSecrets:
+        - name: docker-config
+    persistence:
+      # The immutable policy release, read once at startup. Read-only: see the
+      # ROUTERD_POLICY_BUNDLE_PATH note above. advancedMounts (not globalMounts)
+      # keeps it out of the engine container, which has no business reading it.
+      policy:
+        type: configMap
+        name: lowrider-nav-policy
+        advancedMounts:
+          routerd:
+            main:
+              - path: /etc/lowrider/policy/bundle.json
+                subPath: bundle.json
+                readOnly: true
+    service:
+      routerd:
+        controller: routerd
+        ports:
+          http:
+            port: 8080
+      # ClusterIP only. The engine is an internal dependency of routerd; the
+      # admin port 8990 is bound to the container's own loopback by the image's
+      # config and is deliberately not a Service port here either.
+      graphhopper:
+        controller: graphhopper
+        ports:
+          http:
+            port: 8989
+    # No PersistentVolumeClaim anywhere in this release. routerd's state is the
+    # postgres database (core/postgres, role and DB `lowrider`), and the engine's
+    # state is the graph baked into its image.
+    ingress:
+      routerd:
+        className: tailscale
+        annotations:
+          tailscale.com/hostname: lowrider-api
+        hosts:
+          - host: "lowrider-api.${TAILSCALE_DOMAIN}"
+            paths:
+              - path: /
+                service:
+                  identifier: routerd
+                  port: http
+        tls:
+          - hosts:
+              - "lowrider-api.${TAILSCALE_DOMAIN}"

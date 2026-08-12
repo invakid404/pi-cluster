@@ -3,3 +3,7 @@ kind: Kustomization
 resources:
   - ./pvc.yaml
   - ./helmrelease.yaml
+  # The `lowrider` role/database for apps/lowrider-nav. Additive: it creates one
+  # role and one database and touches nothing that already exists here.
+  - ./lowrider-db-secret.yaml
+  - ./lowrider-db-init.yaml

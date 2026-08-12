@@ -1,0 +1,24 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ./secret.yaml
+  - ./ghcr-pull.yaml
+  - ./policy-bundle.yaml
+  - ./helmrelease.yaml
+  - ./imageautomation.yaml
+# secret.yaml holds ONE key, ROUTERD_DATABASE_DSN, and that is the whole secret
+# surface of this deployment. This is the route-only posture: no Google/maps
+# credential is minted, mounted or referenced anywhere here, because handoff is
+# off and routerd registers no handoff path without both a credential and an
+# engine that can run the gate.
+#
+# ghcr-pull.yaml is deliberately NOT the `ghcr-pull` Secret that apps/vellum
+# owns, even though it carries the same registry credential: two Flux
+# Kustomizations applying one object fight over its ownership labels, and a
+# `prune` on either would delete the other's pull secret. lowrider-nav gets its
+# own `ghcr-pull-lowrider` in flux-system so this directory is self-contained and
+# apps/vellum can be removed without breaking image automation here.
+#
+# The pods pull with the namespace's shared `docker-config` secret (apps/secrets),
+# like every other app in `apps`; ghcr-pull-lowrider is only for the flux-system
+# ImageRepository scans.
