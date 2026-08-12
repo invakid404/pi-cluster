@@ -189,7 +189,7 @@ spec:
           main:
             image:
               repository: ghcr.io/invakid404/lowrider-graphhopper
-              tag: main-20260812181656-cb4fbc1 # {"$imagepolicy": "flux-system:lowrider-graphhopper:tag"}
+              tag: main-20260812234601-7eb8315 # {"$imagepolicy": "flux-system:lowrider-graphhopper:tag"}
             env:
               TZ: "${TIMEZONE}"
               GRAPHHOPPER_JAVA_OPTS: "-Xmx2g"
