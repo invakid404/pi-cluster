@@ -28,12 +28,12 @@ spec:
   # below — it only scans YAMLs that follow k8s object conventions (apiVersion/
   # kind), which a Helm values ConfigMap source file does not.
   #
-  # ROUTE-ONLY DEPLOYMENT. The approved posture is the route service and nothing
-  # else: ROUTERD_ROUTE_API_ENABLED=true, ROUTERD_HANDOFF_ENABLED=false, and no
-  # Google/maps credential anywhere in this directory. routerd registers exactly
-  # GET /healthz, GET /readyz, POST /v1/route and POST /route under that
-  # configuration; POST /v1/handoff is absent (404), not disabled-looking, which
-  # is what the design requires of a handoff whose gate could not run.
+  # ROUTE + HANDOFF (handoff enabled 2026-08-13). ROUTERD_ROUTE_API_ENABLED=true
+  # and ROUTERD_HANDOFF_ENABLED=true, with the Google Routes API credential
+  # mounted read-only as a file (persistence.google-credential + the handoff env
+  # below). routerd registers GET /healthz, GET /readyz, POST /v1/route,
+  # POST /route and POST /v1/handoff. The Routes API is the server-side fidelity
+  # oracle only; a real-device trial remains the bar before handoff is "supported".
   values:
     controllers:
       # The API. One replica, Recreate: migrations run in-process at startup
@@ -106,9 +106,14 @@ spec:
               ROUTERD_POLICY_HAZARD_ID: "hazard-category-local-01"
               ROUTERD_POLICY_EXPLANATION_ID: "explanation-local-01"
               ROUTERD_POLICY_HANDOFF_ID: "handoff-local-01"
-              # Route-only. No credential is mounted and no ref is named, so no
-              # handoff path is registered at all.
-              ROUTERD_HANDOFF_ENABLED: "false"
+              # Handoff ENABLED (2026-08-13). The Google Routes API credential is
+              # mounted read-only as a FILE at the path below (never an env var)
+              # from the SOPS Secret lowrider-nav-google; policy.go readFile()s
+              # ROUTERD_HANDOFF_CREDENTIAL_REF at startup. POST /v1/handoff is now
+              # registered, gated by the handoff-local-01 policy.
+              ROUTERD_HANDOFF_ENABLED: "true"
+              ROUTERD_HANDOFF_PROVIDER: "google_maps"
+              ROUTERD_HANDOFF_CREDENTIAL_REF: "/etc/lowrider/google/api-key"
               # Which OSM generation this process claims to answer from. It must
               # name the same snapshot the engine image's baked graph carries.
               ROUTERD_DATA_OSM_SOURCE_MANIFEST_REF: "osm-sofia-2026-08-08"
@@ -236,6 +241,19 @@ spec:
             main:
               - path: /etc/lowrider/policy/bundle.json
                 subPath: bundle.json
+                readOnly: true
+      # The Google Routes API credential for the handoff fidelity oracle. Mounted
+      # read-only as a FILE (not an env var) so a /proc or crash-dump scrape of
+      # the process environment cannot leak it. policy.go readFile()s the path in
+      # ROUTERD_HANDOFF_CREDENTIAL_REF. advancedMounts keeps it out of the engine.
+      google-credential:
+        type: secret
+        name: lowrider-nav-google
+        advancedMounts:
+          routerd:
+            main:
+              - path: /etc/lowrider/google/api-key
+                subPath: api-key
                 readOnly: true
     service:
       routerd:

@@ -2,15 +2,15 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - ./secret.yaml
+  - ./google-secret.yaml
   - ./ghcr-pull.yaml
   - ./policy-bundle.yaml
   - ./helmrelease.yaml
   - ./imageautomation.yaml
-# secret.yaml holds ONE key, ROUTERD_DATABASE_DSN, and that is the whole secret
-# surface of this deployment. This is the route-only posture: no Google/maps
-# credential is minted, mounted or referenced anywhere here, because handoff is
-# off and routerd registers no handoff path without both a credential and an
-# engine that can run the gate.
+# secret.yaml holds ROUTERD_DATABASE_DSN (delivered via envFrom).
+# google-secret.yaml holds the Google Routes API key as `api-key`, mounted
+# read-only as a FILE (never an env var) for the handoff fidelity oracle;
+# handoff is enabled as of 2026-08-13 (see helmrelease persistence + env).
 #
 # ghcr-pull.yaml is deliberately NOT the `ghcr-pull` Secret that apps/vellum
 # owns, even though it carries the same registry credential: two Flux
