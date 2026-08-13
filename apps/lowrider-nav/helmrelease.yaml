@@ -242,7 +242,7 @@ spec:
           main:
             image:
               repository: ghcr.io/invakid404/lowrider-web
-              tag: main-20260812234601-7eb8315 # {"$imagepolicy": "flux-system:lowrider-web:tag"}
+              tag: main-20260813074232-79f8d5f # {"$imagepolicy": "flux-system:lowrider-web:tag"}
             env:
               TZ: "${TIMEZONE}"
               HOST: "0.0.0.0"
