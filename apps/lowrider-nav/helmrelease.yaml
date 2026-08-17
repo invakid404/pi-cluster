@@ -79,7 +79,7 @@ spec:
               # In-process, advisory-locked, single replica. See the Recreate
               # strategy above and the ROUTERD_ENVIRONMENT note.
               ROUTERD_DATABASE_MIGRATION_MODE: "up"
-              ROUTERD_DATABASE_EXPECTED_SCHEMA_VERSION: "4"
+              ROUTERD_DATABASE_EXPECTED_SCHEMA_VERSION: "5"
               # ROUTERD_DATABASE_DSN is a SECRET and arrives from the SOPS
               # `lowrider-nav` Secret via the envFrom below. The role, database
               # and its postgis extension are created by the ordered Job in
