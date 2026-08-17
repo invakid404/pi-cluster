@@ -93,8 +93,8 @@ spec:
               # the same number recorded in the image's snapshot marker, so a
               # routerd and a graphhopper that disagree about the snapshot are
               # refused at readiness instead of mixed at request time.
-              ROUTERD_ENGINE_EXPECTED_BUILD_ID: "gh-10.2-sofia-2026-08-08"
-              ROUTERD_ENGINE_EXPECTED_MANIFEST_CHECKSUM: "536edd56dd83982cfd34dfc7fc0091e3120ac7a826474e9f3f0a4f3260bbdf9b"
+              ROUTERD_ENGINE_EXPECTED_BUILD_ID: "gh-10.2-sofia-2026-08-08-uturnfix"
+              ROUTERD_ENGINE_EXPECTED_MANIFEST_CHECKSUM: "5adfbdc9f701a12855b48a26769a74c141dbc371841f76f829e233962b20470f"
               # The four identifiers resolve against one immutable bundle and
               # move as one approved release — setting some but not all is a
               # startup error. Neither image bakes the bundle; it is a deploy-time
@@ -116,7 +116,7 @@ spec:
               ROUTERD_HANDOFF_CREDENTIAL_REF: "/etc/lowrider/google/api-key"
               # Which OSM generation this process claims to answer from. It must
               # name the same snapshot the engine image's baked graph carries.
-              ROUTERD_DATA_OSM_SOURCE_MANIFEST_REF: "osm-sofia-2026-08-08"
+              ROUTERD_DATA_OSM_SOURCE_MANIFEST_REF: "osm-sofia-2026-08-08-uturnfix"
               ROUTERD_OPS_LOG_LEVEL: "info"
               # Exact origins, destinations and geometry stay out of ordinary
               # logs; the loader refuses to relax this outside development.
