@@ -54,7 +54,7 @@ spec:
           main:
             image:
               repository: ghcr.io/invakid404/lowrider-routerd
-              tag: main-20260817211920-6c0761f # {"$imagepolicy": "flux-system:lowrider-routerd:tag"}
+              tag: main-20260817223839-3a60ea9 # {"$imagepolicy": "flux-system:lowrider-routerd:tag"}
             env:
               TZ: "${TIMEZONE}"
               # staging, not production, and the reason is concrete rather than
@@ -242,7 +242,7 @@ spec:
           main:
             image:
               repository: ghcr.io/invakid404/lowrider-web
-              tag: main-20260817211920-6c0761f # {"$imagepolicy": "flux-system:lowrider-web:tag"}
+              tag: main-20260817223839-3a60ea9 # {"$imagepolicy": "flux-system:lowrider-web:tag"}
             env:
               TZ: "${TIMEZONE}"
               HOST: "0.0.0.0"
