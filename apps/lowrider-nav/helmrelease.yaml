@@ -54,7 +54,7 @@ spec:
           main:
             image:
               repository: ghcr.io/invakid404/lowrider-routerd
-              tag: main-20260813090958-9928d44 # {"$imagepolicy": "flux-system:lowrider-routerd:tag"}
+              tag: main-20260817211920-6c0761f # {"$imagepolicy": "flux-system:lowrider-routerd:tag"}
             env:
               TZ: "${TIMEZONE}"
               # staging, not production, and the reason is concrete rather than
