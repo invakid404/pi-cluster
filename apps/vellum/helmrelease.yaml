@@ -75,6 +75,13 @@ spec:
               S3_REGION: "us-east-1"
               S3_BUCKET: "vellum"
               S3_USE_PATH_STYLE: "true"
+              # Verified CV Additions — GitHub OAuth account-control. These two are
+              # non-secret URLs; the CLIENT_ID/CLIENT_SECRET/OAUTH_PKCE_KEY are in the
+              # SOPS `vellum` Secret (via envFrom below). The feature is fail-closed:
+              # inert until all five are set. Callback host must equal APP_ORIGIN's
+              # host; the /account/github/callback path is served by vellum-web.
+              APP_ORIGIN: "https://vellum.${TAILSCALE_DOMAIN}"
+              GITHUB_OAUTH_CALLBACK_URL: "https://vellum.${TAILSCALE_DOMAIN}/account/github/callback"
             envFrom:
               - secretRef:
                   name: vellum
