@@ -44,7 +44,7 @@ spec:
           main:
             image:
               repository: ghcr.io/invakid404/vellum-api
-              tag: main-20260821195059-2364d1a # {"$imagepolicy": "flux-system:vellum-api:tag"}
+              tag: main-20260822122441-c168e57 # {"$imagepolicy": "flux-system:vellum-api:tag"}
             # P6 cutover (issue #16): flip the api to `-gate=enqueue-only`, so it
             # registers the publish routes and ENQUEUES CheckJobs onto the durable
             # postgres queue that the node-pinned `vellum-gate` worker already leases
