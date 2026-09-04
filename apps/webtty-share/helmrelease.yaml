@@ -47,6 +47,11 @@ spec:
             image:
               repository: ghcr.io/invakid404/webtty-share
               tag: main-20260826041011-f7f72bf # {"$imagepolicy": "flux-system:webtty-share:tag"}
+            # Bun/JSC ignores heap-cap flags and sizes its heap off assumed RAM, not the cgroup
+            # limit (oven-sh/bun#34917), so it grows past a 256Mi cap and the kernel OOM-kills it
+            # (exit 137). --smol runs the GC far more aggressively and keeps the heap small — the
+            # load-bearing fix; see BUN_JSC_forceRAMSize and the raised limit below.
+            command: ["bun", "--smol", "./build/serve.js"]
             # Defense-in-depth for a public-facing, RCE-capable app: a compromised
             # process can't escalate, write the root fs, or use extra capabilities.
             securityContext:
@@ -105,6 +110,10 @@ spec:
               # SAME value: both layers check independently and both must agree, so change them
               # together, reconciler first.
               WEBTTY_FILES_FLAT_ROOTS: "/Users/inva/Downloads"
+              # Tell JSC how much RAM to ASSUME (bytes) so it stops sizing to host RAM and collects
+              # sooner — ~384 MiB, comfortably under the 512Mi cgroup cap. This biases GC toward the
+              # limit; it is NOT a hard cap (oven-sh/bun#34917), so it is paired with --smol above.
+              BUN_JSC_forceRAMSize: "402653184"
               # No WEBTTY_MCP_CALLER_ID: the app derives the MCP caller from the share
               # (anchor id for reads, target id for sends) — both are always real sessions,
               # so no dedicated caller session is needed. Set the env only to force an override.
@@ -135,9 +144,12 @@ spec:
             resources:
               requests:
                 cpu: 25m
-                memory: 128Mi
-              limits:
                 memory: 256Mi
+              limits:
+                # Bun/JSC has no hard heap cap; --smol + BUN_JSC_forceRAMSize (~384Mi) keep usage well
+                # under this, with headroom for the non-heap overhead the cgroup also counts (page
+                # cache, socket buffers). Raised from 256Mi, which was OOM-killing the pods.
+                memory: 512Mi
     defaultPodOptions:
       imagePullSecrets:
         - name: docker-config
