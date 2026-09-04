@@ -46,7 +46,7 @@ spec:
           main:
             image:
               repository: ghcr.io/invakid404/webtty-share
-              tag: main-20260826041011-f7f72bf # {"$imagepolicy": "flux-system:webtty-share:tag"}
+              tag: main-20260904105815-66e73a5 # {"$imagepolicy": "flux-system:webtty-share:tag"}
             # Bun/JSC ignores heap-cap flags and sizes its heap off assumed RAM, not the cgroup
             # limit (oven-sh/bun#34917), so it grows past a 256Mi cap and the kernel OOM-kills it
             # (exit 137). --smol runs the GC far more aggressively and keeps the heap small — the
