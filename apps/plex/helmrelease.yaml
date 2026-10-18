@@ -31,7 +31,7 @@ spec:
           main:
             image:
               repository: lscr.io/linuxserver/plex
-              tag: 1.43.3
+              tag: 1.43.4.10903-e5521bd8c-ls327
             env:
               TZ: ${TIMEZONE}
               PUID: ${SQUASH_UID}
